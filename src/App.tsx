@@ -1,16 +1,16 @@
 import * as React from 'react';
 
-import Titlebar from 'components/Titlebar';
-import Challenge from 'components/Challenge';
+import AppBar from 'components/AppBar';
+import MainContent from 'components/MainContent';
 
 export default class App extends React.Component
 {
   render()
   {
     return (
-      <div className="container">
-        <Titlebar />
-        <Challenge />
+      <div className="w-100 h-100">
+        <AppBar />
+        <MainContent />
       </div>
     );
   }

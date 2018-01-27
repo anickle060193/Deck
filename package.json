@@ -11,9 +11,11 @@
   "dependencies": {
     "bootstrap": "^4.0.0",
     "jquery": "^3.3.1",
+    "konva": "^1.7.6",
     "popper.js": "^1.12.9",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
+    "react-konva": "^1.6.6",
     "react-scripts-ts": "2.13.0"
   },
   "devDependencies": {
