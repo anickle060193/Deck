@@ -1,17 +1,24 @@
 import * as React from 'react';
-import { Stage, Rect, Layer, Path } from 'react-konva';
+import { Rect, Path, Group } from 'react-konva';
 
 const CARD_RATIO = 88.9 / 63.50;
 
-export enum Suit
+export const enum Suit
 {
-  Spades = 'spades',
-  Hearts = 'hearts',
-  Clubs = 'clubs',
-  Diamonds = 'diamonds'
+  Spades = 'Spades',
+  Hearts = 'Hearts',
+  Clubs = 'Clubs',
+  Diamonds = 'Diamonds'
 }
 
-export enum Rank
+export const SUITS = [
+  Suit.Spades,
+  Suit.Hearts,
+  Suit.Clubs,
+  Suit.Diamonds
+];
+
+export const enum Rank
 {
   Ace = 'Ace',
   Two = 'Two',
@@ -27,6 +34,22 @@ export enum Rank
   Queen = 'Queen',
   King = 'King'
 }
+
+export const RANKS = [
+  Rank.Ace,
+  Rank.Two,
+  Rank.Three,
+  Rank.Four,
+  Rank.Five,
+  Rank.Six,
+  Rank.Seven,
+  Rank.Eight,
+  Rank.Nine,
+  Rank.Ten,
+  Rank.Jack,
+  Rank.Queen,
+  Rank.King
+];
 
 const SUIT_TO_COLOR = {
   [ Suit.Spades ]: 'black',
@@ -54,8 +77,8 @@ const SuitPip: React.SFC<{
     x={x}
     y={y}
     scale={{
-      x: ( cardWidth * 0.002 ) * scale,
-      y: ( cardWidth * 0.002 ) * scale
+      x: ( cardWidth * 0.0025 ) * scale,
+      y: ( cardWidth * 0.0025 ) * scale
     }}
     fill={SUIT_TO_COLOR[ suit ]}
     stroke={SUIT_TO_COLOR[ suit ]}
@@ -147,6 +170,8 @@ const SuitPips: React.SFC<{
 
 interface Props
 {
+  x: number;
+  y: number;
   suit: Suit;
   rank: Rank;
   size: number;
@@ -163,35 +188,35 @@ export default class Card extends React.Component<Props>
     let borderWidth = 1;
 
     return (
-      <Stage
-        width={width}
-        height={height}
+      <Group
+        x={this.props.x}
+        y={this.props.y}
+        draggable={true}
+        onDragMove={( e ) => console.log( 'DRAG MOVE:', e )}
       >
-        <Layer>
-          <Rect
-            x={0}
-            y={0}
-            width={width}
-            height={height}
-            fill="darkgray"
-            cornerRadius={5}
-          />
-          <Rect
-            x={borderWidth}
-            y={borderWidth}
-            width={width - 2 * borderWidth}
-            height={height - 2 * borderWidth}
-            fill="white"
-            cornerRadius={4}
-          />
-          <SuitPips
-            suit={suit}
-            rank={rank}
-            cardWidth={width}
-            cardHeight={height}
-          />
-        </Layer>
-      </Stage>
+        <Rect
+          x={0}
+          y={0}
+          width={width}
+          height={height}
+          fill="darkgray"
+          cornerRadius={5}
+        />
+        <Rect
+          x={borderWidth}
+          y={borderWidth}
+          width={width - 2 * borderWidth}
+          height={height - 2 * borderWidth}
+          fill="white"
+          cornerRadius={4}
+        />
+        <SuitPips
+          suit={suit}
+          rank={rank}
+          cardWidth={width}
+          cardHeight={height}
+        />
+      </Group>
     );
   }
 }

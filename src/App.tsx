@@ -8,7 +8,7 @@ export default class App extends React.Component
   render()
   {
     return (
-      <div className="w-100 h-100">
+      <div className="w-100 h-100 d-flex flex-column">
         <AppBar />
         <MainContent />
       </div>
