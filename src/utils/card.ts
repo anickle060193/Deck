@@ -55,3 +55,5 @@ export interface Card
   x: number;
   y: number;
 }
+
+export type CardMap = { [ id: string ]: Card };

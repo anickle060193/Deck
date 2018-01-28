@@ -1,14 +1,18 @@
 import { Reducer } from 'redux';
 
 import { CardAction, CardActions } from 'store/actions/cards';
-import { Card } from 'utils/card';
+import { CardMap } from 'utils/card';
 
 export interface State
 {
-  cards: { [ id: string ]: Card };
+  loading: boolean;
+  error: Error | null;
+  cards: CardMap;
 }
 
 const initialState: State = {
+  loading: false,
+  error: null,
   cards: {}
 };
 
@@ -16,6 +20,30 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
 {
   switch( action.type )
   {
+    case CardActions.RetrieveCards:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+        cards: {}
+      };
+
+    case CardActions.RetrieveCardsResult:
+      return {
+        ...state,
+        loading: false,
+        error: null,
+        cards: action.cards
+      };
+
+    case CardActions.RetrieveCardsError:
+      return {
+        ...state,
+        loading: false,
+        cards: {},
+        error: action.error
+      };
+
     case CardActions.SetCards:
       return {
         ...state,

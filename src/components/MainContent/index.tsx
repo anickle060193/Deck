@@ -1,9 +1,23 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 
 import CardField from 'components/CardField';
+import { loadLastGame } from 'store/actions/games';
 
-export default class MainContent extends React.Component
+interface PropsFromDispatch
 {
+  loadLastGame: typeof loadLastGame;
+}
+
+type Props = PropsFromDispatch;
+
+class MainContent extends React.Component<Props>
+{
+  componentDidMount()
+  {
+    this.props.loadLastGame();
+  }
+
   render()
   {
     return (
@@ -11,3 +25,10 @@ export default class MainContent extends React.Component
     );
   }
 }
+
+export default connect<{}, PropsFromDispatch, {}, RootState>(
+  null,
+  {
+    loadLastGame
+  }
+)( MainContent );

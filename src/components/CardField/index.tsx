@@ -5,9 +5,11 @@ import { Stage, Layer } from 'react-konva';
 import PlayingCard from 'components/PlayingCard';
 import { Card } from 'utils/card';
 import { moveCard } from 'store/actions/cards';
+import { Game } from 'utils/game';
 
 interface PropsFromState
 {
+  game: Game | null;
   cards: { [ id: string ]: Card };
 }
 
@@ -97,12 +99,16 @@ class CardField extends React.Component<Props, State>
 
   private onCardMove = ( card: Card, x: number, y: number ) =>
   {
-    this.props.moveCard( card.id, x, y );
+    if( this.props.game )
+    {
+      this.props.moveCard( this.props.game.id, card.id, x, y );
+    }
   }
 }
 
 export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
   ( state ) => ( {
+    game: state.games.game,
     cards: state.cards.cards
   } ),
   {
