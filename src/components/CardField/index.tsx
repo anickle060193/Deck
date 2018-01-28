@@ -1,12 +1,22 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 import { Stage, Layer } from 'react-konva';
 
-import Card, { Suit, Rank } from 'components/Card';
+import PlayingCard from 'components/PlayingCard';
+import { Card } from 'utils/card';
+import { moveCard } from 'store/actions/cards';
 
-interface Props
+interface PropsFromState
 {
-  cards: { suit: Suit, rank: Rank }[];
+  cards: { [ id: string ]: Card };
 }
+
+interface PropsFromDispatch
+{
+  moveCard: typeof moveCard;
+}
+
+type Props = PropsFromState & PropsFromDispatch;
 
 interface State
 {
@@ -14,7 +24,7 @@ interface State
   height: number;
 }
 
-export default class CardField extends React.Component<Props, State>
+class CardField extends React.Component<Props, State>
 {
   parentRef: HTMLDivElement | null = null;
 
@@ -42,6 +52,11 @@ export default class CardField extends React.Component<Props, State>
 
   render()
   {
+    let cards = Object
+      .keys( this.props.cards )
+      .map( ( id ) => this.props.cards[ id ] )
+      .sort( ( cardA, cardB ) => ( cardA.index - cardB.index ) );
+
     return (
       <div
         className="w-100 h-100"
@@ -52,14 +67,15 @@ export default class CardField extends React.Component<Props, State>
           height={this.state.height}
         >
           <Layer>
-            {this.props.cards.map( ( { suit, rank } ) => (
-              <Card
-                key={suit + rank}
-                x={Math.random() * 600}
-                y={Math.random() * 600}
+            {cards.map( ( card ) => (
+              <PlayingCard
+                key={card.id}
+                x={card.x}
+                y={card.y}
                 size={100}
-                suit={suit}
-                rank={rank}
+                suit={card.suit}
+                rank={card.rank}
+                onMove={( x, y ) => this.onCardMove( card, x, y )}
               />
             ) )}
           </Layer>
@@ -78,4 +94,18 @@ export default class CardField extends React.Component<Props, State>
       } );
     }
   }
+
+  private onCardMove = ( card: Card, x: number, y: number ) =>
+  {
+    this.props.moveCard( card.id, x, y );
+  }
 }
+
+export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
+  ( state ) => ( {
+    cards: state.cards.cards
+  } ),
+  {
+    moveCard
+  }
+)( CardField );

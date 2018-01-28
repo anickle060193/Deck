@@ -1,55 +1,10 @@
 import * as React from 'react';
+import * as Konva from 'konva';
 import { Rect, Path, Group } from 'react-konva';
 
+import { Suit, Rank } from 'utils/card';
+
 const CARD_RATIO = 88.9 / 63.50;
-
-export const enum Suit
-{
-  Spades = 'Spades',
-  Hearts = 'Hearts',
-  Clubs = 'Clubs',
-  Diamonds = 'Diamonds'
-}
-
-export const SUITS = [
-  Suit.Spades,
-  Suit.Hearts,
-  Suit.Clubs,
-  Suit.Diamonds
-];
-
-export const enum Rank
-{
-  Ace = 'Ace',
-  Two = 'Two',
-  Three = 'Three',
-  Four = 'Four',
-  Five = 'Five',
-  Six = 'Six',
-  Seven = 'Seven',
-  Eight = 'Eight',
-  Nine = 'Nine',
-  Ten = 'Ten',
-  Jack = 'Jack',
-  Queen = 'Queen',
-  King = 'King'
-}
-
-export const RANKS = [
-  Rank.Ace,
-  Rank.Two,
-  Rank.Three,
-  Rank.Four,
-  Rank.Five,
-  Rank.Six,
-  Rank.Seven,
-  Rank.Eight,
-  Rank.Nine,
-  Rank.Ten,
-  Rank.Jack,
-  Rank.Queen,
-  Rank.King
-];
 
 const SUIT_TO_COLOR = {
   [ Suit.Spades ]: 'black',
@@ -175,9 +130,10 @@ interface Props
   suit: Suit;
   rank: Rank;
   size: number;
+  onMove: ( x: number, y: number ) => void;
 }
 
-export default class Card extends React.Component<Props>
+export default class PlayingCard extends React.Component<Props>
 {
   render()
   {
@@ -192,7 +148,7 @@ export default class Card extends React.Component<Props>
         x={this.props.x}
         y={this.props.y}
         draggable={true}
-        onDragMove={( e ) => console.log( 'DRAG MOVE:', e )}
+        onDragEnd={this.onDragEnd}
       >
         <Rect
           x={0}
@@ -218,5 +174,11 @@ export default class Card extends React.Component<Props>
         />
       </Group>
     );
+  }
+
+  private onDragEnd = ( e: KonvaTypes.Event<React.MouseEvent<{}>, Konva.Group> ) =>
+  {
+    let position = e.target.getPosition();
+    this.props.onMove( position.x, position.y );
   }
 }
