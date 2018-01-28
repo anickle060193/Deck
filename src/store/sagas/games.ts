@@ -9,6 +9,9 @@ import
   createGameResult,
   createGameError,
   loadLastGameResult,
+  OpenGameAction,
+  openGameResult,
+  openGameError,
 } from 'store/actions/games';
 import * as db from 'utils/db';
 import { RANKS, SUITS, Suit, Rank } from 'utils/card';
@@ -16,6 +19,11 @@ import { retrieveCards } from 'store/actions/cards';
 import { Game } from 'utils/game';
 
 const LAST_GAME_KEY = 'LAST_GAME';
+
+function setLastGame( gameId: string )
+{
+  localStorage.setItem( LAST_GAME_KEY, gameId );
+}
 
 function* loadLastGame( action: LoadLastGameAction )
 {
@@ -31,6 +39,7 @@ function* loadLastGame( action: LoadLastGameAction )
       let game: Game | null = yield call( db.getGame, lastGameId );
       if( game )
       {
+        setLastGame( game.id );
         yield put( loadLastGameResult( game ) );
         yield put( retrieveCards( game.id ) );
       }
@@ -43,6 +52,27 @@ function* loadLastGame( action: LoadLastGameAction )
   catch( e )
   {
     yield put( loadLastGameError( e ) );
+  }
+}
+
+function* openGame( action: OpenGameAction )
+{
+  try
+  {
+    let game: Game | null = yield call( db.getGame, action.gameId );
+    if( game )
+    {
+      yield put( openGameResult( game ) );
+      yield put( retrieveCards( game.id ) );
+    }
+    else
+    {
+      yield put( openGameResult( null ) );
+    }
+  }
+  catch( e )
+  {
+    yield put( openGameError( e ) );
   }
 }
 
@@ -65,8 +95,7 @@ function* createGame( action: CreateGameAction )
       }, [] );
 
     let game: Game = yield call( db.createGame, cards );
-    console.log( 'GAME:', game );
-    localStorage.setItem( LAST_GAME_KEY, game.id );
+    setLastGame( game.id );
     yield put( createGameResult( game ) );
     yield put( retrieveCards( game.id ) );
   }
@@ -79,5 +108,6 @@ function* createGame( action: CreateGameAction )
 export default function* ()
 {
   yield takeEvery( GamesActions.LoadLastGame, loadLastGame );
+  yield takeEvery( GamesActions.OpenGame, openGame );
   yield takeEvery( GamesActions.CreateGame, createGame );
 }

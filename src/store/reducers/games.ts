@@ -46,6 +46,30 @@ export const reducer: Reducer<State> = ( state = initialState, action: GamesActi
         error: action.error
       };
 
+    case GamesActions.OpenGame:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+        game: null
+      };
+
+    case GamesActions.OpenGameResult:
+      return {
+        ...state,
+        loading: false,
+        error: null,
+        game: action.game
+      };
+
+    case GamesActions.OpenGameError:
+      return {
+        ...state,
+        loading: false,
+        game: null,
+        error: action.error
+      };
+
     case GamesActions.CreateGame:
       return {
         ...state,
