@@ -1,24 +1,36 @@
 import * as React from 'react';
 import * as Konva from 'konva';
-import { Rect, Path, Group } from 'react-konva';
+import { Rect, Path, Group, Text } from 'react-konva';
 
 import { Suit, Rank } from 'utils/card';
 
 const CARD_RATIO = 88.9 / 63.50;
 
-const SUIT_TO_COLOR = {
+function mapCreator<K extends string, V>( keyName: string, mapName: string, map: { [ key: string ]: V } )
+{
+  return ( key: K ) =>
+  {
+    if( !( key in map ) )
+    {
+      throw new Error( `Cannot retrieve ${mapName} with invalid ${keyName}: ${key}` );
+    }
+    return map[ key ];
+  };
+}
+
+const suitToColor = mapCreator<Suit, string>( 'suit', 'color', {
   [ Suit.Spades ]: 'black',
   [ Suit.Clubs ]: 'black',
   [ Suit.Diamonds ]: 'red',
   [ Suit.Hearts ]: 'red'
-};
+} );
 
-const SUIT_TO_PATH = {
+const suitToPath = mapCreator<Suit, string>( 'suit', 'path', {
   [ Suit.Spades ]: 'm-26 -14c-31 31-1 53 23 39-4 16-7 17-10 21l26 0c-3-4-6-5-10-21 25 14 51-11 23-39-18-16-25-30-26-32-1 1-10 16-26 32z',
   [ Suit.Clubs ]: 'm-8 -6c-15-7-36 1-31 20 5 18 26 14 34 3-3 21-9 25-12 29l35 0c-4-5-10-8-14-29 8 11 30 15 35-3 5-18-17-28-31-20 14-10 19-40-8-40-26 0-22 31-8 40z',
   [ Suit.Diamonds ]: 'm0 -48.07c-10.45 16.72-21.945 32.395-33.44 48.07 12.54 15.675 24.035 31.35 33.44 48.07 9.405-16.72 20.9-33.44 33.44-48.07-12.54-15.675-24.035-32.395-33.44-48.07z',
   [ Suit.Hearts ]: 'm2 46c-1 0-1-1-1-2-3-8-7-16-14-25-3-4-5-7-12-15-8-10-10-13-13-17-1-3-3-7-3-9 0-3 0-7 0-9 2-8 9-15 18-15 11-1 19 4 24 14l1 2 1-2c1-2 2-4 4-6 5-6 10-8 17-8 3 0 5 0 8 1 3 1 6 3 9 6 7 8 6 19-2 32-2 3-6 7-11 13-5 7-8 10-11 14-7 8-11 16-13 24-1 1-1 2-1 2-1 1-1 1-1 0z'
-};
+} );
 
 const SuitPip: React.SFC<{
   suit: Suit;
@@ -35,9 +47,9 @@ const SuitPip: React.SFC<{
       x: ( cardWidth * 0.0025 ) * scale,
       y: ( cardWidth * 0.0025 ) * scale
     }}
-    fill={SUIT_TO_COLOR[ suit ]}
-    stroke={SUIT_TO_COLOR[ suit ]}
-    data={SUIT_TO_PATH[ suit ]}
+    fill={suitToColor( suit )}
+    stroke={suitToColor( suit )}
+    data={suitToPath( suit )}
   />
 );
 
@@ -46,7 +58,7 @@ const CENTER = 0.5;
 const LEFT = 0.25;
 const RIGHT = 1 - LEFT;
 
-const TOP = 0.2;
+const TOP = 0.22;
 const BOTTOM = 1 - TOP;
 
 const TL = [ LEFT, TOP ];
@@ -75,7 +87,7 @@ const BMML = [ LEFT, PERC_Y( 2 / 3 ) ];
 const TMMR = [ RIGHT, PERC_Y( 1 / 3 ) ];
 const BMMR = [ RIGHT, PERC_Y( 2 / 3 ) ];
 
-const RANK_TO_LAYOUT = {
+const rankToLayout = mapCreator<Rank, number[][]>( 'rank', 'layout', {
   [ Rank.Ace ]: [ MC ],
   [ Rank.Two ]: [ TC, BC ],
   [ Rank.Three ]: [ TC, MC, BC ],
@@ -89,7 +101,7 @@ const RANK_TO_LAYOUT = {
   [ Rank.Jack ]: [ MC ],
   [ Rank.Queen ]: [ MC ],
   [ Rank.King ]: [ MC ],
-};
+} );
 
 const BIG_SCALE = 3.0;
 
@@ -108,7 +120,7 @@ const SuitPips: React.SFC<{
 }> = ( { suit, rank, cardWidth, cardHeight } ) => (
   <>
   {
-    RANK_TO_LAYOUT[ rank ].map( ( [ x, y ], key ) => (
+    rankToLayout( rank ).map( ( [ x, y ], key ) => (
       <SuitPip
         key={key}
         x={cardWidth * x}
@@ -122,6 +134,22 @@ const SuitPips: React.SFC<{
   }
   </>
 );
+
+const rankToText = mapCreator<Rank, string>( 'rank', 'text', {
+  [ Rank.Ace ]: 'A',
+  [ Rank.Two ]: '2',
+  [ Rank.Three ]: '3',
+  [ Rank.Four ]: '4',
+  [ Rank.Five ]: '5',
+  [ Rank.Six ]: '6',
+  [ Rank.Seven ]: '7',
+  [ Rank.Eight ]: '8',
+  [ Rank.Nine ]: '9',
+  [ Rank.Ten ]: '10',
+  [ Rank.Jack ]: 'J',
+  [ Rank.Queen ]: 'Q',
+  [ Rank.King ]: 'K',
+} );
 
 interface Props
 {
@@ -142,6 +170,7 @@ export default class PlayingCard extends React.Component<Props>
     let height = width * CARD_RATIO;
 
     let borderWidth = 1;
+    let textOffset = 4;
 
     return (
       <Group
@@ -171,6 +200,25 @@ export default class PlayingCard extends React.Component<Props>
           rank={rank}
           cardWidth={width}
           cardHeight={height}
+        />
+        <Text
+          text={rankToText( rank )}
+          fontFamily="Roboto"
+          fontSize={16}
+          fill={suitToColor( suit )}
+          fontStyle="bold"
+          x={textOffset}
+          y={textOffset}
+        />
+        <Text
+          text={rankToText( rank )}
+          fontFamily="Roboto"
+          fontSize={16}
+          fill={suitToColor( suit )}
+          fontStyle="bold"
+          rotation={180}
+          x={width - textOffset}
+          y={height - textOffset}
         />
       </Group>
     );
