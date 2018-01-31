@@ -59,6 +59,8 @@ class CardField extends React.Component<Props, State>
       .map( ( id ) => this.props.cards[ id ] )
       .sort( ( cardA, cardB ) => ( cardA.index - cardB.index ) );
 
+    let cardWidth = Math.min( 100, this.state.width / 10 );
+
     return (
       <div
         className="w-100 h-100"
@@ -72,9 +74,9 @@ class CardField extends React.Component<Props, State>
             {cards.map( ( card ) => (
               <PlayingCard
                 key={card.id}
-                x={card.x}
-                y={card.y}
-                size={100}
+                x={card.x * this.state.width}
+                y={card.y * this.state.height}
+                size={cardWidth}
                 suit={card.suit}
                 rank={card.rank}
                 onMove={( x, y ) => this.onCardMove( card, x, y )}
@@ -101,7 +103,9 @@ class CardField extends React.Component<Props, State>
   {
     if( this.props.game )
     {
-      this.props.moveCard( this.props.game.id, card.id, x, y );
+      let xRatio = x / this.state.width;
+      let yRatio = y / this.state.height;
+      this.props.moveCard( this.props.game.id, card.id, xRatio, yRatio );
     }
   }
 }

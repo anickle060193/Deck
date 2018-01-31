@@ -68,8 +68,8 @@ function* createGame( action: CreateGameAction )
     const cards = RANKS.reverse().map( ( rank ) => ( SUITS.map( ( suit ) => ( {
       suit: suit as Suit,
       rank: rank as Rank,
-      x: Math.random() * 500,
-      y: Math.random() * 500,
+      x: Math.random(),
+      y: Math.random(),
       index: index++
     } ) ) ) )
       .reduce( ( allCards, cardsBySuit ) =>
