@@ -57,3 +57,8 @@ export interface Card
 }
 
 export type CardMap = { [ id: string ]: Card };
+
+export function cardSorter( cardA: Card, cardB: Card )
+{
+  return cardA.index - cardB.index;
+}

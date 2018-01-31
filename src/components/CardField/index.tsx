@@ -3,8 +3,8 @@ import { connect } from 'react-redux';
 import { Stage, Layer } from 'react-konva';
 
 import PlayingCard from 'components/PlayingCard';
-import { Card } from 'utils/card';
-import { moveCard } from 'store/actions/cards';
+import { Card, cardSorter } from 'utils/card';
+import { moveCard, touchCard } from 'store/actions/cards';
 import { Game } from 'utils/game';
 
 interface PropsFromState
@@ -16,6 +16,7 @@ interface PropsFromState
 interface PropsFromDispatch
 {
   moveCard: typeof moveCard;
+  touchCard: typeof touchCard;
 }
 
 type Props = PropsFromState & PropsFromDispatch;
@@ -57,7 +58,8 @@ class CardField extends React.Component<Props, State>
     let cards = Object
       .keys( this.props.cards )
       .map( ( id ) => this.props.cards[ id ] )
-      .sort( ( cardA, cardB ) => ( cardA.index - cardB.index ) );
+      .sort( cardSorter )
+      .reverse();
 
     let cardWidth = Math.min( 100, this.state.width / 10 );
 
@@ -79,6 +81,7 @@ class CardField extends React.Component<Props, State>
                 size={cardWidth}
                 suit={card.suit}
                 rank={card.rank}
+                onTouch={() => this.onCardTouch( card )}
                 onMove={( x, y ) => this.onCardMove( card, x, y )}
               />
             ) )}
@@ -99,6 +102,14 @@ class CardField extends React.Component<Props, State>
     }
   }
 
+  private onCardTouch = ( card: Card ) =>
+  {
+    if( this.props.game )
+    {
+      this.props.touchCard( this.props.game.id, card.id );
+    }
+  }
+
   private onCardMove = ( card: Card, x: number, y: number ) =>
   {
     if( this.props.game )
@@ -116,6 +127,7 @@ export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
     cards: state.cards.cards
   } ),
   {
-    moveCard
+    moveCard,
+    touchCard
   }
 )( CardField );

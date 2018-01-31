@@ -37,6 +37,9 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
         cards: action.cards
       };
 
+    case CardActions.TouchCard:
+      return state;
+
     case CardActions.MoveCard:
       return {
         ...state,

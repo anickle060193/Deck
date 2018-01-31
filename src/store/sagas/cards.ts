@@ -8,6 +8,7 @@ import
   MoveCardAction,
   setCards,
   CardAction,
+  TouchCardAction,
 } from 'store/actions/cards';
 import * as db from 'utils/db';
 import { Card, CardMap } from 'utils/card';
@@ -39,6 +40,11 @@ function* retrieveCards( action: RetrieveCardsAction )
   yield put( setCards( {} ) );
 }
 
+function* touchCard( action: TouchCardAction )
+{
+  yield call( db.touchCard, action.gameId, action.cardId );
+}
+
 function* moveCard( action: MoveCardAction )
 {
   yield call( db.moveCard, action.gameId, action.cardId, action.x, action.y );
@@ -47,5 +53,6 @@ function* moveCard( action: MoveCardAction )
 export default function* ()
 {
   yield takeEvery( CardActions.RetrieveCards, retrieveCards );
+  yield takeEvery( CardActions.TouchCard, touchCard );
   yield takeEvery( CardActions.MoveCard, moveCard );
 }

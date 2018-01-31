@@ -158,6 +158,7 @@ interface Props
   suit: Suit;
   rank: Rank;
   size: number;
+  onTouch: () => void;
   onMove: ( x: number, y: number ) => void;
 }
 
@@ -177,6 +178,8 @@ export default class PlayingCard extends React.Component<Props>
         x={this.props.x}
         y={this.props.y}
         draggable={true}
+        onTouchStart={this.props.onTouch}
+        onMouseDown={this.props.onTouch}
         onDragEnd={this.onDragEnd}
       >
         <Rect

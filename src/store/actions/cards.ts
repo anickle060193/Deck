@@ -7,6 +7,7 @@ export const enum CardActions
   RetrieveCards = 'RETRIEVE_CARDS__CARDS',
   StopRetrievingCards = 'STOP_RETRIEVING_CARDS__CARDS',
   SetCards = 'SET_CARDS__CARDS',
+  TouchCard = 'TOUCH_CARD__CARDS',
   MoveCard = 'MOVE_CARD__CARDS'
 }
 
@@ -28,6 +29,13 @@ export interface SetCardsAction extends Action
   cards: CardMap;
 }
 
+export interface TouchCardAction extends Action
+{
+  type: CardActions.TouchCard;
+  gameId: string;
+  cardId: string;
+}
+
 export interface MoveCardAction extends Action
 {
   type: CardActions.MoveCard;
@@ -41,6 +49,7 @@ export type CardAction = (
   RetrieveCardsAction |
   StopRetrievingCardsAction |
   SetCardsAction |
+  TouchCardAction |
   MoveCardAction
 );
 
@@ -57,6 +66,12 @@ export const stopRetrievingCards = ( gameId: string ): StopRetrievingCardsAction
 export const setCards = ( cards: CardMap ): SetCardsAction => ( {
   type: CardActions.SetCards,
   cards
+} );
+
+export const touchCard = ( gameId: string, cardId: string ): TouchCardAction => ( {
+  type: CardActions.TouchCard,
+  gameId,
+  cardId
 } );
 
 export const moveCard = ( gameId: string, cardId: string, x: number, y: number ): MoveCardAction => ( {
