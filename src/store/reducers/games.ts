@@ -26,8 +26,7 @@ export const reducer: Reducer<State> = ( state = initialState, action: GamesActi
       return {
         ...state,
         loading: true,
-        error: null,
-        game: null
+        error: null
       };
 
     case GamesActions.LoadLastGameResult:
@@ -50,8 +49,7 @@ export const reducer: Reducer<State> = ( state = initialState, action: GamesActi
       return {
         ...state,
         loading: true,
-        error: null,
-        game: null
+        error: null
       };
 
     case GamesActions.OpenGameResult:
@@ -74,8 +72,7 @@ export const reducer: Reducer<State> = ( state = initialState, action: GamesActi
       return {
         ...state,
         creating: true,
-        error: null,
-        game: null
+        error: null
       };
 
     case GamesActions.CreateGameResult:

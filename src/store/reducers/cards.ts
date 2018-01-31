@@ -28,21 +28,8 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
         cards: {}
       };
 
-    case CardActions.RetrieveCardsResult:
-      return {
-        ...state,
-        loading: false,
-        error: null,
-        cards: action.cards
-      };
-
-    case CardActions.RetrieveCardsError:
-      return {
-        ...state,
-        loading: false,
-        cards: {},
-        error: action.error
-      };
+    case CardActions.StopRetrievingCards:
+      return state;
 
     case CardActions.SetCards:
       return {

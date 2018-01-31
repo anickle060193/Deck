@@ -15,6 +15,16 @@ firebase.initializeApp( {
 
 const db = firebase.firestore();
 
+function snapshotToDataCreator<T>()
+{
+  return ( snapshot: firebase.firestore.DocumentSnapshot ) =>
+  {
+    let data = snapshot.data();
+    data.id = snapshot.id;
+    return data as T;
+  };
+}
+
 export async function getGame( gameId: string )
 {
   let gameRef = await db.collection( 'games' ).doc( gameId ).get();
@@ -44,11 +54,16 @@ export async function createGame( cards: Card[] )
 export async function getCards( gameId: string )
 {
   let cards = await db.collection( 'games' ).doc( gameId ).collection( 'cards' ).get();
-  return cards.docs.map( ( doc ) =>
+  return cards.docs.map( snapshotToDataCreator<Game>() );
+}
+
+export function listenForCards( gameId: string, listener: ( card: Card[] ) => void )
+{
+  let cardsCollection = db.collection( 'games' ).doc( gameId ).collection( 'cards' );
+  return cardsCollection.onSnapshot( ( cardsSnapshot ) =>
   {
-    let card = doc.data() as Card;
-    card.id = doc.id;
-    return card;
+    let cards = cardsSnapshot.docs.map( snapshotToDataCreator<Card>() );
+    listener( cards );
   } );
 }
 

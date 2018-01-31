@@ -1,4 +1,4 @@
-import { takeEvery, call, put } from 'redux-saga/effects';
+import { takeEvery, call, put, select } from 'redux-saga/effects';
 
 import
 {
@@ -15,7 +15,7 @@ import
 } from 'store/actions/games';
 import * as db from 'utils/db';
 import { RANKS, SUITS, Suit, Rank } from 'utils/card';
-import { retrieveCards } from 'store/actions/cards';
+import { retrieveCards, stopRetrievingCards } from 'store/actions/cards';
 import { Game } from 'utils/game';
 
 const LAST_GAME_KEY = 'LAST_GAME';
@@ -23,6 +23,15 @@ const LAST_GAME_KEY = 'LAST_GAME';
 function setLastGame( gameId: string )
 {
   localStorage.setItem( LAST_GAME_KEY, gameId );
+}
+
+function* cancelPreviousGame()
+{
+  let game: Game | null = yield select<RootState>( ( state ) => state.games.game );
+  if( game )
+  {
+    yield put( stopRetrievingCards( game.id ) );
+  }
 }
 
 function* loadLastGame( action: LoadLastGameAction )
@@ -40,6 +49,7 @@ function* loadLastGame( action: LoadLastGameAction )
       if( game )
       {
         setLastGame( game.id );
+        yield cancelPreviousGame();
         yield put( loadLastGameResult( game ) );
         yield put( retrieveCards( game.id ) );
       }
@@ -62,6 +72,8 @@ function* openGame( action: OpenGameAction )
     let game: Game | null = yield call( db.getGame, action.gameId );
     if( game )
     {
+      setLastGame( game.id );
+      yield cancelPreviousGame();
       yield put( openGameResult( game ) );
       yield put( retrieveCards( game.id ) );
     }
@@ -96,6 +108,7 @@ function* createGame( action: CreateGameAction )
 
     let game: Game = yield call( db.createGame, cards );
     setLastGame( game.id );
+    yield cancelPreviousGame();
     yield put( createGameResult( game ) );
     yield put( retrieveCards( game.id ) );
   }

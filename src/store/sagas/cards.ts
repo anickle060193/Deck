@@ -1,18 +1,42 @@
-import { takeEvery, call, put } from 'redux-saga/effects';
+import { eventChannel } from 'redux-saga';
+import { takeEvery, call, put, take } from 'redux-saga/effects';
 
-import { RetrieveCardsAction, CardActions, setCards, MoveCardAction } from 'store/actions/cards';
+import
+{
+  RetrieveCardsAction,
+  CardActions,
+  MoveCardAction,
+  setCards,
+  CardAction,
+} from 'store/actions/cards';
 import * as db from 'utils/db';
 import { Card, CardMap } from 'utils/card';
 
 function* retrieveCards( action: RetrieveCardsAction )
 {
-  let cards: Card[] = yield call( db.getCards, action.gameId );
-  let cardMap = cards.reduce( ( allCards, card ) =>
+  let channel = eventChannel<Card[]>( ( emit ) =>
   {
-    allCards[ card.id ] = card;
-    return allCards;
-  }, {} as CardMap );
-  yield put( setCards( cardMap ) );
+    return db.listenForCards( action.gameId, emit );
+  } );
+
+  yield takeEvery( channel, function* ( cards: Card[] )
+  {
+    let cardMap = cards.reduce( ( allCards, card ) =>
+    {
+      allCards[ card.id ] = card;
+      return allCards;
+    }, {} as CardMap );
+
+    yield put( setCards( cardMap ) );
+  } );
+
+  yield take( ( a: CardAction ) => (
+    a.type === CardActions.StopRetrievingCards
+    && a.gameId === action.gameId
+  ) );
+  channel.close();
+
+  yield put( setCards( {} ) );
 }
 
 function* moveCard( action: MoveCardAction )

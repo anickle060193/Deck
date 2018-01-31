@@ -5,8 +5,7 @@ import { CardMap } from 'utils/card';
 export const enum CardActions
 {
   RetrieveCards = 'RETRIEVE_CARDS__CARDS',
-  RetrieveCardsResult = 'RETRIEVE_CARDS_RESULT__CARDS',
-  RetrieveCardsError = 'RETRIEVE_CARDS_ERROR__CARDS',
+  StopRetrievingCards = 'STOP_RETRIEVING_CARDS__CARDS',
   SetCards = 'SET_CARDS__CARDS',
   MoveCard = 'MOVE_CARD__CARDS'
 }
@@ -17,16 +16,10 @@ export interface RetrieveCardsAction extends Action
   gameId: string;
 }
 
-export interface RetrieveCardsResultAction extends Action
+export interface StopRetrievingCardsAction extends Action
 {
-  type: CardActions.RetrieveCardsResult;
-  cards: CardMap;
-}
-
-export interface RetrieveCardsErrorAction extends Action
-{
-  type: CardActions.RetrieveCardsError;
-  error: Error;
+  type: CardActions.StopRetrievingCards;
+  gameId: string;
 }
 
 export interface SetCardsAction extends Action
@@ -46,8 +39,7 @@ export interface MoveCardAction extends Action
 
 export type CardAction = (
   RetrieveCardsAction |
-  RetrieveCardsResultAction |
-  RetrieveCardsErrorAction |
+  StopRetrievingCardsAction |
   SetCardsAction |
   MoveCardAction
 );
@@ -57,14 +49,9 @@ export const retrieveCards = ( gameId: string ): RetrieveCardsAction => ( {
   gameId
 } );
 
-export const retrieveCardsResult = ( cards: CardMap ): RetrieveCardsResultAction => ( {
-  type: CardActions.RetrieveCardsResult,
-  cards
-} );
-
-export const retrieveCardsError = ( error: Error ): RetrieveCardsErrorAction => ( {
-  type: CardActions.RetrieveCardsError,
-  error
+export const stopRetrievingCards = ( gameId: string ): StopRetrievingCardsAction => ( {
+  type: CardActions.StopRetrievingCards,
+  gameId
 } );
 
 export const setCards = ( cards: CardMap ): SetCardsAction => ( {
