@@ -5,13 +5,10 @@ import
   GamesActions,
   LoadLastGameAction,
   CreateGameAction,
-  loadLastGameError,
-  createGameResult,
-  createGameError,
-  loadLastGameResult,
-  OpenGameAction,
-  openGameResult,
-  openGameError,
+  LoadGameAction,
+  loadGame,
+  loadGameResult,
+  loadGameError
 } from 'store/actions/games';
 import * as db from 'utils/db';
 import { RANKS, SUITS, Suit, Rank } from 'utils/card';
@@ -25,47 +22,7 @@ function setLastGame( gameId: string )
   localStorage.setItem( LAST_GAME_KEY, gameId );
 }
 
-function* cancelPreviousGame()
-{
-  let game: Game | null = yield select<RootState>( ( state ) => state.games.game );
-  if( game )
-  {
-    yield put( stopRetrievingCards( game.id ) );
-  }
-}
-
-function* loadLastGame( action: LoadLastGameAction )
-{
-  try
-  {
-    let lastGameId = localStorage.getItem( LAST_GAME_KEY );
-    if( !lastGameId )
-    {
-      yield put( loadLastGameResult( null ) );
-    }
-    else
-    {
-      let game: Game | null = yield call( db.getGame, lastGameId );
-      if( game )
-      {
-        setLastGame( game.id );
-        yield cancelPreviousGame();
-        yield put( loadLastGameResult( game ) );
-        yield put( retrieveCards( game.id ) );
-      }
-      else
-      {
-        yield put( loadLastGameResult( null ) );
-      }
-    }
-  }
-  catch( e )
-  {
-    yield put( loadLastGameError( e ) );
-  }
-}
-
-function* openGame( action: OpenGameAction )
+function* loadGameFromDb( action: LoadGameAction )
 {
   try
   {
@@ -73,18 +30,33 @@ function* openGame( action: OpenGameAction )
     if( game )
     {
       setLastGame( game.id );
-      yield cancelPreviousGame();
-      yield put( openGameResult( game ) );
+
+      let lastGame: Game | null = yield select<RootState>( ( state ) => state.games.game );
+      if( lastGame )
+      {
+        yield put( stopRetrievingCards( lastGame.id ) );
+      }
+
+      yield put( loadGameResult( game ) );
       yield put( retrieveCards( game.id ) );
     }
     else
     {
-      yield put( openGameResult( null ) );
+      yield put( loadGameResult( null ) );
     }
   }
   catch( e )
   {
-    yield put( openGameError( e ) );
+    yield put( loadGameError( e ) );
+  }
+}
+
+function* loadLastGame( action: LoadLastGameAction )
+{
+  let lastGameId = localStorage.getItem( LAST_GAME_KEY );
+  if( lastGameId )
+  {
+    yield put( loadGame( lastGameId ) );
   }
 }
 
@@ -107,20 +79,18 @@ function* createGame( action: CreateGameAction )
       }, [] );
 
     let game: Game = yield call( db.createGame, cards );
-    setLastGame( game.id );
-    yield cancelPreviousGame();
-    yield put( createGameResult( game ) );
-    yield put( retrieveCards( game.id ) );
+
+    yield put( loadGame( game.id ) );
   }
   catch( e )
   {
-    yield put( createGameError( e ) );
+    yield put( loadGameError( e ) );
   }
 }
 
 export default function* ()
 {
+  yield takeEvery( GamesActions.LoadGame, loadGameFromDb );
   yield takeEvery( GamesActions.LoadLastGame, loadLastGame );
-  yield takeEvery( GamesActions.OpenGame, openGame );
   yield takeEvery( GamesActions.CreateGame, createGame );
 }

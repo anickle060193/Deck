@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { createGame, openGame } from 'store/actions/games';
+import { createGame, loadGame } from 'store/actions/games';
 import { Game } from 'utils/game';
 
 interface PropsFromState
@@ -14,7 +14,7 @@ interface PropsFromState
 interface PropsFromDispatch
 {
   createGame: typeof createGame;
-  openGame: typeof openGame;
+  loadGame: typeof loadGame;
 }
 
 type Props = PropsFromState & PropsFromDispatch;
@@ -91,7 +91,7 @@ class AppBar extends React.Component<Props, State>
 
     if( this.state.gameId )
     {
-      this.props.openGame( this.state.gameId );
+      this.props.loadGame( this.state.gameId );
     }
   }
 }
@@ -104,6 +104,6 @@ export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
   } ),
   {
     createGame,
-    openGame
+    loadGame
   }
 )( AppBar );

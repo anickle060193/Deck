@@ -22,73 +22,37 @@ export const reducer: Reducer<State> = ( state = initialState, action: GamesActi
 {
   switch( action.type )
   {
+    case GamesActions.LoadGame:
+      return {
+        ...state,
+        loading: true,
+        error: null
+      };
+
+    case GamesActions.LoadGameResult:
+      return {
+        ...state,
+        loading: false,
+        error: null,
+        game: action.game
+      };
+
+    case GamesActions.LoadGameError:
+      return {
+        ...state,
+        loading: false,
+        game: null,
+        error: action.error
+      };
+
     case GamesActions.LoadLastGame:
-      return {
-        ...state,
-        loading: true,
-        error: null
-      };
-
-    case GamesActions.LoadLastGameResult:
-      return {
-        ...state,
-        loading: false,
-        error: null,
-        game: action.game
-      };
-
-    case GamesActions.LoadLastGameError:
-      return {
-        ...state,
-        loading: false,
-        game: null,
-        error: action.error
-      };
-
-    case GamesActions.OpenGame:
-      return {
-        ...state,
-        loading: true,
-        error: null
-      };
-
-    case GamesActions.OpenGameResult:
-      return {
-        ...state,
-        loading: false,
-        error: null,
-        game: action.game
-      };
-
-    case GamesActions.OpenGameError:
-      return {
-        ...state,
-        loading: false,
-        game: null,
-        error: action.error
-      };
+      return state;
 
     case GamesActions.CreateGame:
       return {
         ...state,
         creating: true,
         error: null
-      };
-
-    case GamesActions.CreateGameResult:
-      return {
-        ...state,
-        creating: false,
-        error: null,
-        game: action.game
-      };
-
-    case GamesActions.CreateGameError:
-      return {
-        ...state,
-        creating: false,
-        game: null,
-        error: action.error
       };
 
     default:
