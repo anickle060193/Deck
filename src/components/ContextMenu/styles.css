@@ -1,0 +1,31 @@
+.context-menu
+{
+  position: absolute;
+  background: white;
+  box-shadow: 1px 1px 5px 1px #bab5ab;
+  border-radius: 3px;
+}
+
+.context-menu ul
+{
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.context-menu li
+{
+  padding: 0.35rem 1rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.context-menu li:hover
+{
+  background: lightblue;
+}
+
+.context-menu li:not( :last-child )
+{
+  border-bottom: 1px solid #cecece;
+}

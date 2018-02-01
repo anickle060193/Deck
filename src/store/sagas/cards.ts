@@ -1,5 +1,5 @@
 import { eventChannel } from 'redux-saga';
-import { takeEvery, call, put, take } from 'redux-saga/effects';
+import { takeEvery, call, put, take, select } from 'redux-saga/effects';
 
 import
 {
@@ -9,9 +9,10 @@ import
   setCards,
   CardAction,
   TouchCardAction,
+  GatherCardsAction,
 } from 'store/actions/cards';
 import * as db from 'utils/db';
-import { Card, CardMap } from 'utils/card';
+import { Card, toCardMap, CardMap, toCardArray, cardSorter } from 'utils/card';
 
 function* retrieveCards( action: RetrieveCardsAction )
 {
@@ -22,12 +23,7 @@ function* retrieveCards( action: RetrieveCardsAction )
 
   yield takeEvery( channel, function* ( cards: Card[] )
   {
-    let cardMap = cards.reduce( ( allCards, card ) =>
-    {
-      allCards[ card.id ] = card;
-      return allCards;
-    }, {} as CardMap );
-
+    let cardMap = toCardMap( cards );
     yield put( setCards( cardMap ) );
   } );
 
@@ -50,9 +46,23 @@ function* moveCard( action: MoveCardAction )
   yield call( db.moveCard, action.gameId, action.cardId, action.x, action.y );
 }
 
+function* gatherCards( action: GatherCardsAction )
+{
+  let cardMap: CardMap = yield select<RootState>( ( state ) => state.cards.cards );
+  let cards = toCardArray( cardMap );
+  cards.sort( cardSorter );
+  cards.forEach( ( card, i ) =>
+  {
+    card.x = action.x - i * 0.0001;
+    card.y = action.y + i * 0.0001;
+  } );
+  yield call( db.saveCards, action.gameId, cards );
+}
+
 export default function* ()
 {
   yield takeEvery( CardActions.RetrieveCards, retrieveCards );
   yield takeEvery( CardActions.TouchCard, touchCard );
   yield takeEvery( CardActions.MoveCard, moveCard );
+  yield takeEvery( CardActions.GatherCards, gatherCards );
 }

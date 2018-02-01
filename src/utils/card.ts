@@ -62,3 +62,18 @@ export function cardSorter( cardA: Card, cardB: Card )
 {
   return cardA.index - cardB.index;
 }
+
+export function toCardMap( cards: Card[] )
+{
+  let cardMap: CardMap = {};
+  for( let card of cards )
+  {
+    cardMap[ card.id ] = card;
+  }
+  return cardMap;
+}
+
+export function toCardArray( cards: CardMap )
+{
+  return Object.keys( cards ).map( ( id ) => cards[ id ] );
+}

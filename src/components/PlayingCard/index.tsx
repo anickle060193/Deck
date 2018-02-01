@@ -4,8 +4,6 @@ import { Rect, Path, Group, Text } from 'react-konva';
 
 import { Suit, Rank } from 'utils/card';
 
-const CARD_RATIO = 88.9 / 63.50;
-
 function mapCreator<K extends string, V>( keyName: string, mapName: string, map: { [ key: string ]: V } )
 {
   return ( key: K ) =>
@@ -157,7 +155,8 @@ interface Props
   y: number;
   suit: Suit;
   rank: Rank;
-  size: number;
+  width: number;
+  height: number;
   onTouch: () => void;
   onMove: ( x: number, y: number ) => void;
 }
@@ -166,9 +165,7 @@ export default class PlayingCard extends React.Component<Props>
 {
   render()
   {
-    let { size, suit, rank } = this.props;
-    let width = size;
-    let height = width * CARD_RATIO;
+    let { width, height, suit, rank } = this.props;
 
     let borderWidth = 1;
     let textOffset = 4;
@@ -179,7 +176,7 @@ export default class PlayingCard extends React.Component<Props>
         y={this.props.y}
         draggable={true}
         onTouchStart={this.props.onTouch}
-        onMouseDown={this.props.onTouch}
+        onMouseDown={this.onMouseDown}
         onDragEnd={this.onDragEnd}
       >
         <Rect
@@ -225,6 +222,14 @@ export default class PlayingCard extends React.Component<Props>
         />
       </Group>
     );
+  }
+
+  private onMouseDown = ( e: KonvaTypes.Event<React.MouseEvent<{}>, {}> ) =>
+  {
+    if( e.evt.button === 0 )
+    {
+      this.props.onTouch();
+    }
   }
 
   private onDragEnd = ( e: KonvaTypes.Event<React.MouseEvent<{}>, Konva.Group> ) =>

@@ -3,9 +3,12 @@ import { connect } from 'react-redux';
 import { Stage, Layer } from 'react-konva';
 
 import PlayingCard from 'components/PlayingCard';
+import ContextMenu from 'components/ContextMenu';
 import { Card, cardSorter } from 'utils/card';
-import { moveCard, touchCard } from 'store/actions/cards';
+import { moveCard, touchCard, gatherCards } from 'store/actions/cards';
 import { Game } from 'utils/game';
+
+const CARD_RATIO = 88.9 / 63.50;
 
 interface PropsFromState
 {
@@ -17,6 +20,7 @@ interface PropsFromDispatch
 {
   moveCard: typeof moveCard;
   touchCard: typeof touchCard;
+  gatherCards: typeof gatherCards;
 }
 
 type Props = PropsFromState & PropsFromDispatch;
@@ -25,6 +29,11 @@ interface State
 {
   width: number;
   height: number;
+  cardWidth: number;
+  cardHeight: number;
+  contextMenuX: number;
+  contextMenuY: number;
+  contextMenuOpen: boolean;
 }
 
 class CardField extends React.Component<Props, State>
@@ -38,6 +47,11 @@ class CardField extends React.Component<Props, State>
     this.state = {
       width: 100,
       height: 100,
+      cardWidth: 100,
+      cardHeight: 100 * CARD_RATIO,
+      contextMenuX: -1,
+      contextMenuY: -1,
+      contextMenuOpen: false
     };
   }
 
@@ -61,16 +75,16 @@ class CardField extends React.Component<Props, State>
       .sort( cardSorter )
       .reverse();
 
-    let cardWidth = Math.min( 100, this.state.width / 10 );
-
     return (
       <div
         className="w-100 h-100"
         ref={( ref ) => this.parentRef = ref}
+        onContextMenu={( e ) => e.preventDefault()}
       >
         <Stage
           width={this.state.width}
           height={this.state.height}
+          onContentClick={this.onContentClick}
         >
           <Layer>
             {cards.map( ( card ) => (
@@ -78,7 +92,8 @@ class CardField extends React.Component<Props, State>
                 key={card.id}
                 x={card.x * this.state.width}
                 y={card.y * this.state.height}
-                size={cardWidth}
+                width={this.state.cardWidth}
+                height={this.state.cardHeight}
                 suit={card.suit}
                 rank={card.rank}
                 onTouch={() => this.onCardTouch( card )}
@@ -87,6 +102,15 @@ class CardField extends React.Component<Props, State>
             ) )}
           </Layer>
         </Stage>
+        <ContextMenu
+          x={this.state.contextMenuX}
+          y={this.state.contextMenuY}
+          open={this.state.contextMenuOpen}
+          onClose={() => this.setState( { contextMenuOpen: false } )}
+          actions={[
+            { label: 'Gather Here', onClick: this.onGatherHereClick }
+          ]}
+        />
       </div>
     );
   }
@@ -95,9 +119,28 @@ class CardField extends React.Component<Props, State>
   {
     if( this.parentRef )
     {
+      let width = this.parentRef.clientWidth;
+      let height = this.parentRef.clientHeight;
+      let cardWidth = Math.min( 100, width / 10 );
+      let cardHeight = cardWidth * CARD_RATIO;
+
       this.setState( {
-        width: this.parentRef.clientWidth,
-        height: this.parentRef.clientHeight
+        width,
+        height,
+        cardWidth,
+        cardHeight
+      } );
+    }
+  }
+
+  private onContentClick = ( e: KonvaTypes.Event<React.MouseEvent<{}>, {}> ) =>
+  {
+    if( e.evt.button === 2 )
+    {
+      this.setState( {
+        contextMenuX: e.evt.pageX,
+        contextMenuY: e.evt.pageY,
+        contextMenuOpen: true
       } );
     }
   }
@@ -119,6 +162,17 @@ class CardField extends React.Component<Props, State>
       this.props.moveCard( this.props.game.id, card.id, xRatio, yRatio );
     }
   }
+
+  private onGatherHereClick = () =>
+  {
+    if( this.props.game )
+    {
+      let x = ( this.state.contextMenuX - this.state.cardWidth / 2 ) / this.state.width;
+      let y = ( this.state.contextMenuY - this.state.cardHeight / 2 ) / this.state.height;
+
+      this.props.gatherCards( this.props.game.id, x, y );
+    }
+  }
 }
 
 export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
@@ -128,6 +182,7 @@ export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
   } ),
   {
     moveCard,
-    touchCard
+    touchCard,
+    gatherCards
   }
 )( CardField );

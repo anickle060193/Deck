@@ -53,6 +53,9 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
         }
       };
 
+    case CardActions.GatherCards:
+      return state;
+
     default:
       return state;
   }

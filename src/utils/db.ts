@@ -57,6 +57,21 @@ export async function getCards( gameId: string )
   return cards.docs.map( snapshotToDataCreator<Game>() );
 }
 
+export async function saveCards( gameId: string, cards: Card[] )
+{
+  let cardsCollection = db.collection( 'games' ).doc( gameId ).collection( 'cards' );
+  let batch = db.batch();
+
+  for( let card of cards )
+  {
+    let tempCard = { ...card };
+    delete tempCard.id;
+    batch.update( cardsCollection.doc( card.id ), tempCard );
+  }
+
+  await batch.commit();
+}
+
 export function listenForCards( gameId: string, listener: ( card: Card[] ) => void )
 {
   let cardsCollection = db.collection( 'games' ).doc( gameId ).collection( 'cards' );
