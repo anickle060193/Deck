@@ -40,42 +40,49 @@ class AppBar extends React.Component<Props, State>
     let changeGameDisabled = ( this.props.gameCreating || this.props.gameLoading );
 
     return (
-      <nav className="navbar navbar-dark bg-dark">
+      <nav className="navbar navbar-expand-lg fixed-top navbar-dark bg-dark" style={{ zIndex: 1000 }}>
         <span className="navbar-brand">
           Deck
           {this.props.game && (
             ' - ' + this.props.game.id
           )}
         </span>
-        <form
-          className="form-inline ml-auto mr-4"
-          onSubmit={this.onOpenGame}
-        >
-          <input
-            className="form-control mr-2"
-            type="text"
-            placeholder="Game ID"
-            disabled={changeGameDisabled}
-            defaultValue={this.state.gameId}
-            onChange={this.onOpenGameIdChange}
-          />
-          <button
-            className="btn btn-outline-success my-2 my-sm-0"
-            type="submit"
-            disabled={changeGameDisabled || !!this.state.gameId.match( /^\s*$/ )}
-          >
-            Open Game
-          </button>
-        </form>
 
-        <button
-          className="btn btn-outline-info my-2 my-sm-0"
-          type="button"
-          disabled={changeGameDisabled}
-          onClick={this.props.createGame}
-        >
-          New Game
+        <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+          <span className="navbar-toggler-icon" />
         </button>
+
+        <div className="collapse navbar-collapse" id="navbar">
+          <form
+            className="form-inline ml-auto mr-4 my-2 my-lg-0"
+            onSubmit={this.onOpenGame}
+          >
+            <input
+              className="form-control mr-sm-2"
+              type="text"
+              placeholder="Game ID"
+              disabled={changeGameDisabled}
+              defaultValue={this.state.gameId}
+              onChange={this.onOpenGameIdChange}
+            />
+            <button
+              className="btn btn-outline-success my-2 my-sm-0"
+              type="submit"
+              disabled={changeGameDisabled || !!this.state.gameId.match( /^\s*$/ )}
+            >
+              Open Game
+            </button>
+          </form>
+
+          <button
+            className="btn btn-outline-info my-2 my-sm-0"
+            type="button"
+            disabled={changeGameDisabled}
+            onClick={this.props.createGame}
+          >
+            New Game
+          </button>
+        </div>
       </nav>
     );
   }

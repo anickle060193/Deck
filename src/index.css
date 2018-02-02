@@ -11,3 +11,8 @@ body,
   background-color: var( --light );
   overflow: hidden;
 }
+
+body
+{
+  margin-top: 3.5rem;
+}
