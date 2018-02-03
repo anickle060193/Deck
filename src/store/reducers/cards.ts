@@ -41,17 +41,7 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
       return state;
 
     case CardActions.MoveCard:
-      return {
-        ...state,
-        cards: {
-          ...state.cards,
-          [ action.cardId ]: {
-            ...state.cards[ action.cardId ],
-            x: action.x,
-            y: action.y
-          }
-        }
-      };
+      return state;
 
     case CardActions.GatherCards:
       return state;
