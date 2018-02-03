@@ -5,7 +5,7 @@ import { Stage, Layer } from 'react-konva';
 import PlayingCard from 'components/PlayingCard';
 import ContextMenu from 'components/ContextMenu';
 import { Card, cardSorter } from 'utils/card';
-import { moveCard, touchCard, gatherCards } from 'store/actions/cards';
+import { moveCard, touchCard, gatherCards, scatterCards } from 'store/actions/cards';
 import { Game } from 'utils/game';
 
 const CARD_RATIO = 88.9 / 63.50;
@@ -21,6 +21,7 @@ interface PropsFromDispatch
   moveCard: typeof moveCard;
   touchCard: typeof touchCard;
   gatherCards: typeof gatherCards;
+  scatterCards: typeof scatterCards;
 }
 
 type Props = PropsFromState & PropsFromDispatch;
@@ -108,7 +109,8 @@ class CardField extends React.Component<Props, State>
           open={this.state.contextMenuOpen}
           onClose={() => this.setState( { contextMenuOpen: false } )}
           actions={[
-            { label: 'Gather Here', onClick: this.onGatherHereClick }
+            { label: 'Gather Cards Here', onClick: this.onGatherHereClick },
+            { label: 'Scatter Cards', onClick: this.onScatterCardsClick }
           ]}
         />
       </div>
@@ -173,6 +175,14 @@ class CardField extends React.Component<Props, State>
       this.props.gatherCards( this.props.game.id, x, y );
     }
   }
+
+  private onScatterCardsClick = () =>
+  {
+    if( this.props.game )
+    {
+      this.props.scatterCards( this.props.game.id );
+    }
+  }
 }
 
 export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
@@ -183,6 +193,7 @@ export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
   {
     moveCard,
     touchCard,
-    gatherCards
+    gatherCards,
+    scatterCards
   }
 )( CardField );

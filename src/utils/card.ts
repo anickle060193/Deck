@@ -77,3 +77,18 @@ export function toCardArray( cards: CardMap )
 {
   return Object.keys( cards ).map( ( id ) => cards[ id ] );
 }
+
+function rand( min: number, max: number )
+{
+  return ( Math.floor( Math.random() * ( max - min + 1 ) ) + min );
+}
+
+export function shuffle<T>( items: T[] )
+{
+  for( let i = 0; i < items.length - 2; i++ )
+  {
+    let j = rand( i, items.length - 1 );
+    [ items[ i ], items[ j ] ] = [ items[ j ], items[ i ] ];
+  }
+  return items;
+}

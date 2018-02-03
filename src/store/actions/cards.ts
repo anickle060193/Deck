@@ -9,7 +9,8 @@ export const enum CardActions
   SetCards = 'SET_CARDS__CARDS',
   TouchCard = 'TOUCH_CARD__CARDS',
   MoveCard = 'MOVE_CARD__CARDS',
-  GatherCards = 'GATHER_CARDS__CARDS'
+  GatherCards = 'GATHER_CARDS__CARDS',
+  ScatterCards = 'SCATTER_CARDS__CARDS'
 }
 
 export interface RetrieveCardsAction extends Action
@@ -54,13 +55,20 @@ export interface GatherCardsAction extends Action
   y: number;
 }
 
+export interface ScatterCardsAction extends Action
+{
+  type: CardActions.ScatterCards;
+  gameId: string;
+}
+
 export type CardAction = (
   RetrieveCardsAction |
   StopRetrievingCardsAction |
   SetCardsAction |
   TouchCardAction |
   MoveCardAction |
-  GatherCardsAction
+  GatherCardsAction |
+  ScatterCardsAction
 );
 
 export const retrieveCards = ( gameId: string ): RetrieveCardsAction => ( {
@@ -97,4 +105,9 @@ export const gatherCards = ( gameId: string, x: number, y: number ): GatherCards
   gameId,
   x,
   y
+} );
+
+export const scatterCards = ( gameId: string ): ScatterCardsAction => ( {
+  type: CardActions.ScatterCards,
+  gameId
 } );

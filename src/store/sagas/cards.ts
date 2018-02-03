@@ -10,9 +10,10 @@ import
   CardAction,
   TouchCardAction,
   GatherCardsAction,
+  ScatterCardsAction,
 } from 'store/actions/cards';
 import * as db from 'utils/db';
-import { Card, toCardMap, CardMap, toCardArray, cardSorter } from 'utils/card';
+import { Card, toCardMap, CardMap, toCardArray, cardSorter, shuffle } from 'utils/card';
 
 function* retrieveCards( action: RetrieveCardsAction )
 {
@@ -59,10 +60,25 @@ function* gatherCards( action: GatherCardsAction )
   yield call( db.saveCards, action.gameId, cards );
 }
 
+function* scatterCards( action: ScatterCardsAction )
+{
+  let cardMap: CardMap = yield select<RootState>( ( state ) => state.cards.cards );
+  let cards = toCardArray( cardMap );
+  shuffle( cards );
+  cards.forEach( ( card, i ) =>
+  {
+    card.index = i;
+    card.x = Math.random() * 0.8;
+    card.y = Math.random() * 0.8;
+  } );
+  yield call( db.saveCards, action.gameId, cards );
+}
+
 export default function* ()
 {
   yield takeEvery( CardActions.RetrieveCards, retrieveCards );
   yield takeEvery( CardActions.TouchCard, touchCard );
   yield takeEvery( CardActions.MoveCard, moveCard );
   yield takeEvery( CardActions.GatherCards, gatherCards );
+  yield takeEvery( CardActions.ScatterCards, scatterCards );
 }
