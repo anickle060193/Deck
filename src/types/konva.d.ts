@@ -10,5 +10,10 @@ declare global
       evt: ET;
       type: string;
     }
+
+    export type MouseEvent = KonvaTypes.Event<React.MouseEvent<{}> & {
+      offsetX: number;
+      offsetY: number;
+    }, {}>;
   }
 }

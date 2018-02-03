@@ -32,6 +32,8 @@ interface State
   height: number;
   cardWidth: number;
   cardHeight: number;
+  contextMenuOffsetX: number;
+  contextMenuOffsetY: number;
   contextMenuX: number;
   contextMenuY: number;
   contextMenuOpen: boolean;
@@ -50,6 +52,8 @@ class CardField extends React.Component<Props, State>
       height: 100,
       cardWidth: 100,
       cardHeight: 100 * CARD_RATIO,
+      contextMenuOffsetX: 0,
+      contextMenuOffsetY: 0,
       contextMenuX: -1,
       contextMenuY: -1,
       contextMenuOpen: false
@@ -104,8 +108,8 @@ class CardField extends React.Component<Props, State>
           </Layer>
         </Stage>
         <ContextMenu
-          x={this.state.contextMenuX}
-          y={this.state.contextMenuY}
+          x={this.state.contextMenuX + this.state.contextMenuOffsetX}
+          y={this.state.contextMenuY + this.state.contextMenuOffsetY}
           open={this.state.contextMenuOpen}
           onClose={() => this.setState( { contextMenuOpen: false } )}
           actions={[
@@ -135,15 +139,20 @@ class CardField extends React.Component<Props, State>
     }
   }
 
-  private onContentClick = ( e: KonvaTypes.Event<React.MouseEvent<{}>, {}> ) =>
+  private onContentClick = ( e: KonvaTypes.MouseEvent ) =>
   {
     if( e.evt.button === 2 )
     {
-      this.setState( {
-        contextMenuX: e.evt.pageX,
-        contextMenuY: e.evt.pageY,
-        contextMenuOpen: true
-      } );
+      if( this.parentRef )
+      {
+        this.setState( {
+          contextMenuOffsetX: this.parentRef.offsetLeft,
+          contextMenuOffsetY: this.parentRef.offsetTop,
+          contextMenuX: e.evt.offsetX,
+          contextMenuY: e.evt.offsetY,
+          contextMenuOpen: true
+        } );
+      }
     }
   }
 
@@ -169,10 +178,13 @@ class CardField extends React.Component<Props, State>
   {
     if( this.props.game )
     {
-      let x = ( this.state.contextMenuX - this.state.cardWidth / 2 ) / this.state.width;
-      let y = ( this.state.contextMenuY - this.state.cardHeight / 2 ) / this.state.height;
+      if( this.parentRef )
+      {
+        let x = ( this.state.contextMenuX - this.state.cardWidth / 2 ) / this.state.width;
+        let y = ( this.state.contextMenuY - this.state.cardHeight / 2 ) / this.state.height;
 
-      this.props.gatherCards( this.props.game.id, x, y );
+        this.props.gatherCards( this.props.game.id, x, y );
+      }
     }
   }
 
