@@ -4,6 +4,8 @@ import { connect } from 'react-redux';
 import { createGame, loadGame } from 'store/actions/games';
 import { Game } from 'utils/game';
 
+import './styles.css';
+
 interface PropsFromState
 {
   gameLoading: boolean;
@@ -40,7 +42,7 @@ class AppBar extends React.Component<Props, State>
     let changeGameDisabled = ( this.props.gameCreating || this.props.gameLoading );
 
     return (
-      <nav className="navbar navbar-expand-lg fixed-top navbar-dark bg-dark" style={{ zIndex: 1000 }}>
+      <nav className="appbar navbar navbar-expand-lg fixed-top navbar-dark bg-dark" style={{ zIndex: 1000 }}>
         <span className="navbar-brand">
           Deck
           {this.props.game && (
