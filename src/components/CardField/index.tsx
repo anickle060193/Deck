@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Stage, Layer } from 'react-konva';
 
-import PlayingCard from 'components/PlayingCard';
+import PlayingCard from 'components/CardField/PlayingCard';
 import ContextMenu from 'components/ContextMenu';
 import { Card, cardSorter } from 'utils/card';
 import { moveCard, touchCard, gatherCards, scatterCards } from 'store/actions/cards';
