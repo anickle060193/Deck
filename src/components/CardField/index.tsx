@@ -6,7 +6,7 @@ import ContextMenu from 'components/ContextMenu';
 import Selection from 'components/CardField/Selection';
 
 import { Card, cardSorter, toCardArray } from 'utils/card';
-import { moveCard, touchCard, gatherCards, scatterCards, selectCards } from 'store/actions/cards';
+import { moveCard, touchCard, gatherCards, scatterCards, selectCards, deselectCards } from 'store/actions/cards';
 import { Game } from 'utils/game';
 
 const CARD_RATIO = 88.9 / 63.50;
@@ -25,6 +25,7 @@ interface PropsFromDispatch
   gatherCards: typeof gatherCards;
   scatterCards: typeof scatterCards;
   selectCards: typeof selectCards;
+  deselectCards: typeof deselectCards;
 }
 
 type Props = PropsFromState & PropsFromDispatch;
@@ -269,7 +270,7 @@ class CardField extends React.Component<Props, State>
 
   private onCardTouch = ( card: Card ) =>
   {
-    this.props.selectCards( [] );
+    this.props.deselectCards();
     if( this.props.game )
     {
       this.props.touchCard( this.props.game.id, card.id );
@@ -303,7 +304,7 @@ class CardField extends React.Component<Props, State>
         {
           this.props.gatherCards( this.props.game.id, Array.from( this.props.selectedCardIds ), x, y );
         }
-        this.props.selectCards( [] );
+        this.props.deselectCards();
       }
     }
   }
@@ -313,7 +314,7 @@ class CardField extends React.Component<Props, State>
     if( this.props.game )
     {
       this.props.scatterCards( this.props.game.id );
-      this.props.selectCards( [] );
+      this.props.deselectCards();
     }
   }
 }
@@ -329,6 +330,7 @@ export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
     touchCard,
     gatherCards,
     scatterCards,
-    selectCards
+    selectCards,
+    deselectCards
   }
 )( CardField );

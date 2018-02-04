@@ -77,6 +77,12 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
         selectedCardIds: new Set( action.cardIds )
       };
 
+    case CardActions.DeselectCards:
+      return {
+        ...state,
+        selectedCardIds: new Set()
+      };
+
     default:
       return state;
   }
