@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-// import { Stage, Layer, Rect } from 'react-konva';
 
 import PlayingCard from 'components/CardField/PlayingCard';
 import ContextMenu from 'components/ContextMenu';
-// import Selection from 'components/CardField/Selection';
+import Selection from 'components/CardField/Selection';
 
 import { Card, cardSorter, toCardArray } from 'utils/card';
 import { moveCard, touchCard, gatherCards, scatterCards, selectCards } from 'store/actions/cards';
@@ -37,15 +36,12 @@ interface State
   cardWidth: number;
   cardHeight: number;
 
-  mouseDown: boolean;
   selectionX: number;
   selectionY: number;
   selectionWidth: number;
   selectionHeight: number;
   selectionVisible: boolean;
 
-  contextMenuOffsetX: number;
-  contextMenuOffsetY: number;
   contextMenuX: number;
   contextMenuY: number;
   contextMenuOpen: boolean;
@@ -54,6 +50,7 @@ interface State
 class CardField extends React.Component<Props, State>
 {
   parentRef: HTMLDivElement | null = null;
+  mouseDown: boolean;
 
   constructor( props: Props )
   {
@@ -65,19 +62,18 @@ class CardField extends React.Component<Props, State>
       cardWidth: 100,
       cardHeight: 100 * CARD_RATIO,
 
-      mouseDown: false,
       selectionX: 0,
       selectionY: 0,
       selectionWidth: 0,
       selectionHeight: 0,
       selectionVisible: false,
 
-      contextMenuOffsetX: 0,
-      contextMenuOffsetY: 0,
       contextMenuX: -1,
       contextMenuY: -1,
       contextMenuOpen: false
     };
+
+    this.mouseDown = false;
   }
 
   componentDidMount()
@@ -110,7 +106,8 @@ class CardField extends React.Component<Props, State>
       <div
         className="w-100 h-100 position-relative"
         ref={( ref ) => this.parentRef = ref}
-        onContextMenu={( e ) => e.preventDefault()}
+        onContextMenu={this.onContextMenu}
+        onMouseDown={this.onBackgroundMouseDown}
       >
         {cards.map( ( card ) => (
           <PlayingCard
@@ -126,9 +123,16 @@ class CardField extends React.Component<Props, State>
             onMove={( x, y ) => this.onCardMove( card, x, y )}
           />
         ) )}
+        <Selection
+          x={this.state.selectionX}
+          y={this.state.selectionY}
+          width={this.state.selectionWidth}
+          height={this.state.selectionHeight}
+          visible={this.state.selectionVisible}
+        />
         <ContextMenu
-          x={this.state.contextMenuX + this.state.contextMenuOffsetX}
-          y={this.state.contextMenuY + this.state.contextMenuOffsetY}
+          x={this.state.contextMenuX}
+          y={this.state.contextMenuY}
           open={this.state.contextMenuOpen}
           onClose={() => this.setState( { contextMenuOpen: false } )}
           actions={[
@@ -158,49 +162,51 @@ class CardField extends React.Component<Props, State>
     }
   }
 
-  /*
-  private onBackgroundClick = ( e: KonvaTypes.MouseEvent ) =>
+  private onContextMenu = ( e: React.MouseEvent<{}> ) =>
   {
-    if( e.evt.button === 2 )
+    if( this.parentRef )
+    {
+      e.preventDefault();
+      e.persist();
+
+      this.setState( {
+        contextMenuX: e.clientX,
+        contextMenuY: e.clientY,
+        contextMenuOpen: true
+      } );
+    }
+  }
+
+  private onBackgroundMouseDown = ( e: React.MouseEvent<{}> ) =>
+  {
+    if( e.button === 0 )
     {
       if( this.parentRef )
       {
+        this.mouseDown = true;
+
         this.setState( {
-          contextMenuOffsetX: this.parentRef.offsetLeft,
-          contextMenuOffsetY: this.parentRef.offsetTop,
-          contextMenuX: e.evt.offsetX,
-          contextMenuY: e.evt.offsetY,
-          contextMenuOpen: true
+          selectionX: e.clientX - this.parentRef.offsetLeft,
+          selectionY: e.clientY - this.parentRef.offsetTop
         } );
       }
     }
   }
 
-  private onBackgroundMouseDown = ( e: KonvaTypes.MouseEvent ) =>
-  {
-    if( e.evt.button === 0 )
-    {
-      this.setState( {
-        mouseDown: true,
-        selectionX: e.evt.offsetX,
-        selectionY: e.evt.offsetY
-      } );
-    }
-  }
-  */
-
   private onMouseMove = ( e: MouseEvent ) =>
   {
-    if( e.button === 0 && this.state.mouseDown )
+    if( e.button === 0 && this.mouseDown )
     {
-      let x = e.clientX - this.parentRef!.offsetLeft;
-      let y = e.clientY - this.parentRef!.offsetTop;
-      this.setState( {
-        mouseDown: true,
-        selectionWidth: x - this.state.selectionX,
-        selectionHeight: y - this.state.selectionY,
-        selectionVisible: true
-      } );
+      if( this.parentRef )
+      {
+        let x = e.clientX - this.parentRef.offsetLeft;
+        let y = e.clientY - this.parentRef.offsetTop;
+        this.setState( {
+          selectionWidth: x - this.state.selectionX,
+          selectionHeight: y - this.state.selectionY,
+          selectionVisible: true
+        } );
+      }
     }
   }
 
@@ -208,14 +214,18 @@ class CardField extends React.Component<Props, State>
   {
     if( e.button === 0 )
     {
-      if( this.state.mouseDown )
+      if( this.mouseDown )
       {
         this.onSelection();
       }
 
+      this.mouseDown = false;
       this.setState( {
-        mouseDown: false,
-        selectionVisible: false
+        selectionVisible: false,
+        selectionX: -1,
+        selectionY: -1,
+        selectionWidth: 0,
+        selectionHeight: 0
       } );
     }
   }
@@ -283,8 +293,8 @@ class CardField extends React.Component<Props, State>
     {
       if( this.parentRef )
       {
-        let x = ( this.state.contextMenuX - this.state.cardWidth / 2 ) / this.state.width;
-        let y = ( this.state.contextMenuY - this.state.cardHeight / 2 ) / this.state.height;
+        let x = ( this.state.contextMenuX - this.parentRef.offsetLeft - this.state.cardWidth / 2 ) / this.state.width;
+        let y = ( this.state.contextMenuY - this.parentRef.offsetTop - this.state.cardHeight / 2 ) / this.state.height;
 
         this.props.gatherCards( this.props.game.id, x, y );
       }

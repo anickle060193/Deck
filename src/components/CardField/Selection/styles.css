@@ -1,0 +1,10 @@
+.selection
+{
+  position: absolute;
+  min-width: 0;
+  min-height: 0;
+
+  background: #99d3e888;
+  border: 1px solid #78d4f588;
+  border-radius: 3px;
+}
