@@ -234,6 +234,12 @@ class CardField extends React.Component<Props, State>
   {
     let { selectionX, selectionY, selectionWidth, selectionHeight } = this.state;
 
+    if( selectionWidth === 0 || selectionHeight === 0 )
+    {
+      this.props.deselectCards();
+      return;
+    }
+
     let left: number, top: number, right: number, bottom: number;
     if( selectionWidth < 0 )
     {
@@ -256,13 +262,18 @@ class CardField extends React.Component<Props, State>
       bottom = selectionY + selectionHeight;
     }
 
-    left /= this.state.width;
-    right /= this.state.width;
-    top /= this.state.height;
-    bottom /= this.state.height;
+    let { width, height, cardWidth, cardHeight } = this.state;
 
     let selectedCardIds = toCardArray( this.props.cards )
-      .filter( ( { x, y } ) => left <= x && x <= right && top <= y && y <= bottom )
+      .filter( ( { x, y } ) =>
+      {
+        let cardLeft = x * width;
+        let cardRight = cardLeft + cardWidth;
+        let cardTop = y * height;
+        let cardBottom = cardTop + cardHeight;
+
+        return !( right < cardLeft || cardRight < left || bottom < cardTop || cardBottom < top );
+      } )
       .map( ( { id } ) => id );
 
     this.props.selectCards( selectedCardIds );
