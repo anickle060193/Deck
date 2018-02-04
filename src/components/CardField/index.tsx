@@ -96,11 +96,7 @@ class CardField extends React.Component<Props, State>
 
   render()
   {
-    let cards = Object
-      .keys( this.props.cards )
-      .map( ( id ) => this.props.cards[ id ] )
-      .sort( cardSorter )
-      .reverse();
+    let cards = toCardArray( this.props.cards ).sort( cardSorter ).reverse();
 
     return (
       <div
