@@ -8,7 +8,6 @@ import
   MoveCardAction,
   setCards,
   CardAction,
-  TouchCardAction,
   GatherCardsAction,
   ScatterCardsAction,
   selectCards,
@@ -39,11 +38,6 @@ function* retrieveCards( action: RetrieveCardsAction )
   yield put( selectCards( [] ) );
 }
 
-function* touchCard( action: TouchCardAction )
-{
-  yield call( db.touchCard, action.gameId, action.cardId );
-}
-
 function* moveCard( action: MoveCardAction )
 {
   yield call( db.moveCard, action.gameId, action.cardId, action.x, action.y );
@@ -69,7 +63,7 @@ function* scatterCards( action: ScatterCardsAction )
   shuffle( cards );
   cards.forEach( ( card, i ) =>
   {
-    card.index = i;
+    card.index = new Date( i );
     card.x = Math.random() * 0.8;
     card.y = Math.random() * 0.8;
   } );
@@ -79,7 +73,6 @@ function* scatterCards( action: ScatterCardsAction )
 export default function* ()
 {
   yield takeEvery( CardActions.RetrieveCards, retrieveCards );
-  yield takeEvery( CardActions.TouchCard, touchCard );
   yield takeEvery( CardActions.MoveCard, moveCard );
   yield takeEvery( CardActions.GatherCards, gatherCards );
   yield takeEvery( CardActions.ScatterCards, scatterCards );

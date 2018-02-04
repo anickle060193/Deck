@@ -51,7 +51,7 @@ export interface Card
   id: string;
   suit: Suit;
   rank: Rank;
-  index: number;
+  index: Date | null | number;
   x: number;
   y: number;
 }
@@ -60,7 +60,7 @@ export type CardMap = { [ id: string ]: Card };
 
 export function cardSorter( cardA: Card, cardB: Card )
 {
-  return cardA.index - cardB.index;
+  return ( +( cardB.index || new Date() ) ) - ( +( cardA.index || new Date() ) );
 }
 
 export function toCardMap( cards: Card[] )

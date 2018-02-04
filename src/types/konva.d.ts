@@ -4,18 +4,19 @@ declare global
 {
   namespace KonvaTypes
   {
-    export interface Event<ET extends SyntheticEvent<{}>, T>
+    export interface Event<E extends SyntheticEvent<CT>, CT, T>
     {
       target: T;
-      evt: ET & {
+      currentTarget: CT;
+      evt: E & {
         cancelBubble: boolean;
       };
       type: string;
     }
 
-    export type MouseEvent<T = {}, ET = {}> = KonvaTypes.Event<React.MouseEvent<ET> & {
+    export type MouseEvent<T = {}, CT = {}> = KonvaTypes.Event<React.MouseEvent<CT> & {
       offsetX: number;
       offsetY: number;
-    }, T>;
+    }, CT, T>;
   }
 }

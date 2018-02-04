@@ -178,7 +178,7 @@ export default class PlayingCard extends React.Component<Props>
         y={this.props.y}
         draggable={true}
         onMouseDown={this.onMouseDown}
-        onDragEnd={this.onDragEnd}
+        onMouseUp={this.onMouseUp}
       >
         {this.props.selected &&
           <Rect
@@ -242,9 +242,12 @@ export default class PlayingCard extends React.Component<Props>
     }
   }
 
-  private onDragEnd = ( e: KonvaTypes.MouseEvent<Konva.Group> ) =>
+  private onMouseUp = ( e: KonvaTypes.MouseEvent<{}, Konva.Group> ) =>
   {
-    let position = e.target.getPosition();
-    this.props.onMove( position.x, position.y );
+    if( e.evt.button === 0 )
+    {
+      let position = e.currentTarget.getPosition();
+      this.props.onMove( position.x, position.y );
+    }
   }
 }

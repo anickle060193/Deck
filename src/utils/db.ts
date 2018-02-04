@@ -1,7 +1,7 @@
 import * as firebase from 'firebase';
 import 'firebase/firestore';
 
-import { Card, cardSorter } from 'utils/card';
+import { Card } from 'utils/card';
 import { Game } from 'utils/game';
 
 firebase.initializeApp( {
@@ -41,7 +41,7 @@ export async function createGame( cards: Card[] )
 
   let cardsRef = gameDoc.collection( 'cards' );
 
-  for( let card of cards )
+  for( let { id, ...card } of cards )
   {
     batch.set( cardsRef.doc(), card );
   }
@@ -62,11 +62,9 @@ export async function saveCards( gameId: string, cards: Card[] )
   let cardsCollection = db.collection( 'games' ).doc( gameId ).collection( 'cards' );
   let batch = db.batch();
 
-  for( let card of cards )
+  for( let { id, ...card } of cards )
   {
-    let tempCard = { ...card };
-    delete tempCard.id;
-    batch.update( cardsCollection.doc( card.id ), tempCard );
+    batch.update( cardsCollection.doc( id ), card );
   }
 
   await batch.commit();
@@ -84,22 +82,9 @@ export function listenForCards( gameId: string, listener: ( card: Card[] ) => vo
 
 export async function touchCard( gameId: string, cardId: string )
 {
-  let cardsCollection = db.collection( 'games' ).doc( gameId ).collection( 'cards' );
-  let cardsSnapshot = await cardsCollection.get();
-  let cards = cardsSnapshot.docs.map( snapshotToDataCreator<Card>() );
-  let index = cards.findIndex( ( c ) => c.id === cardId );
-  if( index !== -1 )
-  {
-    let [ touchedCard ] = cards.splice( index, 1 );
-    cards.sort( cardSorter );
-    cards.forEach( ( card, i ) => card.index = i );
-
-    let batch = db.batch();
-
-    cards.forEach( ( card, i ) => batch.update( cardsCollection.doc( card.id ), { index: i + 1 } ) );
-    batch.update( cardsCollection.doc( touchedCard.id ), { index: 0 } );
-    await batch.commit();
-  }
+  await db.collection( 'games' ).doc( gameId )
+    .collection( 'cards' ).doc( cardId )
+    .update( { index: firebase.firestore.FieldValue.serverTimestamp() } );
 }
 
 export async function moveCard( gameId: string, cardId: string, x: number, y: number )
@@ -107,6 +92,7 @@ export async function moveCard( gameId: string, cardId: string, x: number, y: nu
   let cardDoc = db.collection( 'games' ).doc( gameId ).collection( 'cards' ).doc( cardId );
   await cardDoc.update( {
     x,
-    y
+    y,
+    index: firebase.firestore.FieldValue.serverTimestamp()
   } );
 }

@@ -40,7 +40,16 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
       };
 
     case CardActions.TouchCard:
-      return state;
+      return {
+        ...state,
+        cards: {
+          ...state.cards,
+          [ action.cardId ]: {
+            ...state.cards[ action.cardId ],
+            index: new Date()
+          }
+        }
+      };
 
     case CardActions.MoveCard:
       return {
@@ -50,7 +59,8 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
           [ action.cardId ]: {
             ...state.cards[ action.cardId ],
             x: action.x,
-            y: action.y
+            y: action.y,
+            index: new Date()
           }
         }
       };

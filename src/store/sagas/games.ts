@@ -11,7 +11,7 @@ import
   loadGameError
 } from 'store/actions/games';
 import * as db from 'utils/db';
-import { RANKS, SUITS, Suit, Rank } from 'utils/card';
+import { RANKS, SUITS, Suit, Rank, Card } from 'utils/card';
 import { retrieveCards, stopRetrievingCards } from 'store/actions/cards';
 import { Game } from 'utils/game';
 
@@ -65,12 +65,13 @@ function* createGame( action: CreateGameAction )
   try
   {
     let index = 0;
-    const cards = RANKS.reverse().map( ( rank ) => ( SUITS.map( ( suit ) => ( {
+    const cards: Card[] = RANKS.reverse().map( ( rank ) => ( SUITS.map( ( suit ) => ( {
+      id: '',
       suit: suit as Suit,
       rank: rank as Rank,
       x: Math.random(),
       y: Math.random(),
-      index: index++
+      index: new Date( index++ )
     } ) ) ) )
       .reduce( ( allCards, cardsBySuit ) =>
       {
