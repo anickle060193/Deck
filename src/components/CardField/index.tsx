@@ -283,7 +283,10 @@ class CardField extends React.Component<Props, State>
     {
       let xRatio = x / this.state.width;
       let yRatio = y / this.state.height;
-      this.props.moveCard( this.props.game.id, card.id, xRatio, yRatio );
+      if( xRatio !== card.x || yRatio !== card.y )
+      {
+        this.props.moveCard( this.props.game.id, card.id, xRatio, yRatio );
+      }
     }
   }
 
