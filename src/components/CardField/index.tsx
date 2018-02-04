@@ -99,6 +99,7 @@ class CardField extends React.Component<Props, State>
     let cards = toCardArray( this.props.cards ).sort( cardSorter ).reverse();
 
     return (
+      <>
       <div
         className="w-100 h-100 position-relative"
         ref={( ref ) => this.parentRef = ref}
@@ -126,17 +127,19 @@ class CardField extends React.Component<Props, State>
           height={this.state.selectionHeight}
           visible={this.state.selectionVisible}
         />
-        <ContextMenu
-          x={this.state.contextMenuX}
-          y={this.state.contextMenuY}
-          open={this.state.contextMenuOpen}
-          onClose={() => this.setState( { contextMenuOpen: false } )}
-          actions={[
-            { label: 'Gather Cards Here', onClick: this.onGatherHereClick },
-            { label: 'Scatter Cards', onClick: this.onScatterCardsClick }
-          ]}
-        />
       </div>
+
+      <ContextMenu
+        x={this.state.contextMenuX}
+        y={this.state.contextMenuY}
+        open={this.state.contextMenuOpen}
+        onClose={() => this.setState( { contextMenuOpen: false } )}
+        actions={[
+          { label: 'Gather Cards Here', onClick: this.onGatherHereClick },
+          { label: 'Scatter Cards', onClick: this.onScatterCardsClick }
+        ]}
+      />
+      </>
     );
   }
 
@@ -292,7 +295,14 @@ class CardField extends React.Component<Props, State>
         let x = ( this.state.contextMenuX - this.parentRef.offsetLeft - this.state.cardWidth / 2 ) / this.state.width;
         let y = ( this.state.contextMenuY - this.parentRef.offsetTop - this.state.cardHeight / 2 ) / this.state.height;
 
-        this.props.gatherCards( this.props.game.id, x, y );
+        if( this.props.selectedCardIds.size === 0 )
+        {
+          this.props.gatherCards( this.props.game.id, Object.keys( this.props.cards ), x, y );
+        }
+        else
+        {
+          this.props.gatherCards( this.props.game.id, Array.from( this.props.selectedCardIds ), x, y );
+        }
       }
     }
   }

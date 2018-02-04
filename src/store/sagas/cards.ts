@@ -46,8 +46,10 @@ function* moveCard( action: MoveCardAction )
 function* gatherCards( action: GatherCardsAction )
 {
   let cardMap: CardMap = yield select<RootState>( ( state ) => state.cards.cards );
-  let cards = toCardArray( cardMap );
-  cards.sort( cardSorter );
+  let cards = toCardArray( cardMap )
+    .filter( ( { id } ) => action.cardIds.indexOf( id ) !== -1 )
+    .sort( cardSorter );
+
   cards.forEach( ( card, i ) =>
   {
     card.x = action.x - i * 0.0001;

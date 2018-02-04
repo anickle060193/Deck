@@ -45,7 +45,7 @@ export default class ContextMenu extends React.Component<Props>
             <li
               key={i}
               tabIndex={i + 1}
-              onClick={( e ) => this.onMenuItemClick( onClick )}
+              onClick={( e ) => this.onMenuItemClick( e, onClick )}
             >
               {label}
             </li>
@@ -59,12 +59,18 @@ export default class ContextMenu extends React.Component<Props>
   {
     if( this.props.open && this.contextMenuRef && !this.contextMenuRef.contains( e.target as HTMLElement ) )
     {
+      e.preventDefault();
+      e.stopPropagation();
+
       this.props.onClose();
     }
   }
 
-  private onMenuItemClick = ( onClick: MenuItemClickCallback ) =>
+  private onMenuItemClick = ( e: React.MouseEvent<{}>, onClick: MenuItemClickCallback ) =>
   {
+    e.preventDefault();
+    e.stopPropagation();
+
     this.props.onClose();
     onClick();
   }

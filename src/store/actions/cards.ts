@@ -52,6 +52,7 @@ export interface GatherCardsAction extends Action
 {
   type: CardActions.GatherCards;
   gameId: string;
+  cardIds: string[];
   x: number;
   y: number;
 }
@@ -108,9 +109,10 @@ export const moveCard = ( gameId: string, cardId: string, x: number, y: number )
   y
 } );
 
-export const gatherCards = ( gameId: string, x: number, y: number ): GatherCardsAction => ( {
+export const gatherCards = ( gameId: string, cardIds: string[], x: number, y: number ): GatherCardsAction => ( {
   type: CardActions.GatherCards,
   gameId,
+  cardIds,
   x,
   y
 } );
