@@ -13,7 +13,7 @@ const CARD_RATIO = 88.9 / 63.50;
 
 interface PropsFromState
 {
-  game: Game | null;
+  game: Game;
   cards: { [ id: string ]: Card };
   selectedCardIds: Set<String>;
 }
@@ -318,83 +318,65 @@ class CardField extends React.Component<Props, State>
   private onCardTouch = ( card: Card ) =>
   {
     this.props.deselectCards();
-    if( this.props.game )
-    {
-      this.props.touchCard( this.props.game.id, card.id );
-    }
+    this.props.touchCard( this.props.game.id, card.id );
   }
 
   private onCardMove = ( card: Card, x: number, y: number ) =>
   {
-    if( this.props.game )
+    let xRatio = x / this.state.width;
+    let yRatio = y / this.state.height;
+    if( xRatio !== card.x || yRatio !== card.y )
     {
-      let xRatio = x / this.state.width;
-      let yRatio = y / this.state.height;
-      if( xRatio !== card.x || yRatio !== card.y )
-      {
-        this.props.moveCard( this.props.game.id, card.id, xRatio, yRatio );
-      }
+      this.props.moveCard( this.props.game.id, card.id, xRatio, yRatio );
     }
   }
 
   private onFlipCard = ( card: Card ) =>
   {
-    if( this.props.game )
-    {
-      this.props.flipCards( this.props.game.id, [ card.id ], !card.faceDown );
-    }
+    this.props.flipCards( this.props.game.id, [ card.id ], !card.faceDown );
   }
 
   private onFlipCards = ( faceDown: boolean ) =>
   {
-    if( this.props.game )
+    if( this.props.selectedCardIds.size === 0 )
     {
-      if( this.props.selectedCardIds.size === 0 )
-      {
-        this.props.flipCards( this.props.game.id, Object.keys( this.props.cards ), faceDown );
-      }
-      else
-      {
-        this.props.flipCards( this.props.game.id, Array.from( this.props.selectedCardIds ), faceDown );
-      }
+      this.props.flipCards( this.props.game.id, Object.keys( this.props.cards ), faceDown );
+    }
+    else
+    {
+      this.props.flipCards( this.props.game.id, Array.from( this.props.selectedCardIds ), faceDown );
     }
   }
 
   private onGatherHereClick = () =>
   {
-    if( this.props.game )
+    if( this.parentRef )
     {
-      if( this.parentRef )
-      {
-        let x = ( this.state.contextMenuX - this.parentRef.offsetLeft - this.state.cardWidth / 2 ) / this.state.width;
-        let y = ( this.state.contextMenuY - this.parentRef.offsetTop - this.state.cardHeight / 2 ) / this.state.height;
+      let x = ( this.state.contextMenuX - this.parentRef.offsetLeft - this.state.cardWidth / 2 ) / this.state.width;
+      let y = ( this.state.contextMenuY - this.parentRef.offsetTop - this.state.cardHeight / 2 ) / this.state.height;
 
-        if( this.props.selectedCardIds.size === 0 )
-        {
-          this.props.gatherCards( this.props.game.id, Object.keys( this.props.cards ), x, y );
-        }
-        else
-        {
-          this.props.gatherCards( this.props.game.id, Array.from( this.props.selectedCardIds ), x, y );
-        }
-        this.props.deselectCards();
+      if( this.props.selectedCardIds.size === 0 )
+      {
+        this.props.gatherCards( this.props.game.id, Object.keys( this.props.cards ), x, y );
       }
+      else
+      {
+        this.props.gatherCards( this.props.game.id, Array.from( this.props.selectedCardIds ), x, y );
+      }
+      this.props.deselectCards();
     }
   }
 
   private onScatterCardsClick = () =>
   {
-    if( this.props.game )
-    {
-      this.props.scatterCards( this.props.game.id );
-      this.props.deselectCards();
-    }
+    this.props.scatterCards( this.props.game.id );
+    this.props.deselectCards();
   }
 }
 
 export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
   ( state ) => ( {
-    game: state.games.game,
+    game: state.games.game!,
     cards: state.cards.cards,
     selectedCardIds: state.cards.selectedCardIds
   } ),
