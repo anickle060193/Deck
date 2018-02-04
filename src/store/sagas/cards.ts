@@ -11,6 +11,7 @@ import
   GatherCardsAction,
   ScatterCardsAction,
   selectCards,
+  FlipCardsAction,
 } from 'store/actions/cards';
 import * as db from 'utils/db';
 import { Card, toCardMap, CardMap, toCardArray, cardSorter, shuffle } from 'utils/card';
@@ -72,10 +73,16 @@ function* scatterCards( action: ScatterCardsAction )
   yield call( db.saveCards, action.gameId, cards );
 }
 
+function* flipCards( action: FlipCardsAction )
+{
+  yield call( db.flipCards, action.gameId, action.cardIds, action.faceDown );
+}
+
 export default function* ()
 {
   yield takeEvery( CardActions.RetrieveCards, retrieveCards );
   yield takeEvery( CardActions.MoveCard, moveCard );
   yield takeEvery( CardActions.GatherCards, gatherCards );
   yield takeEvery( CardActions.ScatterCards, scatterCards );
+  yield takeEvery( CardActions.FlipCards, flipCards );
 }

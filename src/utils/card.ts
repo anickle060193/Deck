@@ -46,14 +46,24 @@ export const RANKS = [
   Rank.King
 ];
 
-export interface Card
+export interface CardBase
 {
-  id: string;
   suit: Suit;
   rank: Rank;
   index: Date | null | number;
   x: number;
   y: number;
+  faceDown: boolean;
+}
+
+export interface Card extends CardBase
+{
+  id: string;
+}
+
+export interface CardUpdate extends Partial<CardBase>
+{
+  id: string;
 }
 
 export type CardMap = { [ id: string ]: Card };

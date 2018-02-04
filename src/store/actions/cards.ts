@@ -12,7 +12,8 @@ export const enum CardActions
   GatherCards = 'GATHER_CARDS__CARDS',
   ScatterCards = 'SCATTER_CARDS__CARDS',
   SelectCards = 'SELECT_CARDS__CARDS',
-  DeselectCards = 'DESELECT_CARDS__CARDS'
+  DeselectCards = 'DESELECT_CARDS__CARDS',
+  FlipCards = 'FLIP_CARDS__CARDS'
 }
 
 export interface RetrieveCardsAction extends Action
@@ -75,6 +76,14 @@ export interface DeselectCardsAction extends Action
   type: CardActions.DeselectCards;
 }
 
+export interface FlipCardsAction extends Action
+{
+  type: CardActions.FlipCards;
+  gameId: string;
+  cardIds: string[];
+  faceDown: boolean;
+}
+
 export type CardAction = (
   RetrieveCardsAction |
   StopRetrievingCardsAction |
@@ -84,7 +93,8 @@ export type CardAction = (
   GatherCardsAction |
   ScatterCardsAction |
   SelectCardsAction |
-  DeselectCardsAction
+  DeselectCardsAction |
+  FlipCardsAction
 );
 
 export const retrieveCards = ( gameId: string ): RetrieveCardsAction => ( {
@@ -136,4 +146,11 @@ export const selectCards = ( cardIds: string[] ): SelectCardsAction => ( {
 
 export const deselectCards = (): DeselectCardsAction => ( {
   type: CardActions.DeselectCards
+} );
+
+export const flipCards = ( gameId: string, cardIds: string[], faceDown: boolean ): FlipCardsAction => ( {
+  type: CardActions.FlipCards,
+  gameId,
+  cardIds,
+  faceDown
 } );

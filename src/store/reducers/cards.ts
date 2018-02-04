@@ -83,6 +83,9 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
         selectedCardIds: new Set()
       };
 
+    case CardActions.FlipCards:
+      return state;
+
     default:
       return state;
   }

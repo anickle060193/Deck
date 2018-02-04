@@ -6,7 +6,7 @@ import ContextMenu from 'components/ContextMenu';
 import Selection from 'components/CardField/Selection';
 
 import { Card, cardSorter, toCardArray } from 'utils/card';
-import { moveCard, touchCard, gatherCards, scatterCards, selectCards, deselectCards } from 'store/actions/cards';
+import { moveCard, touchCard, gatherCards, scatterCards, selectCards, deselectCards, flipCards } from 'store/actions/cards';
 import { Game } from 'utils/game';
 
 const CARD_RATIO = 88.9 / 63.50;
@@ -26,6 +26,7 @@ interface PropsFromDispatch
   scatterCards: typeof scatterCards;
   selectCards: typeof selectCards;
   deselectCards: typeof deselectCards;
+  flipCards: typeof flipCards;
 }
 
 type Props = PropsFromState & PropsFromDispatch;
@@ -114,8 +115,7 @@ class CardField extends React.Component<Props, State>
             y={card.y * this.state.height}
             width={this.state.cardWidth}
             height={this.state.cardHeight}
-            suit={card.suit}
-            rank={card.rank}
+            card={card}
             selected={this.props.selectedCardIds.has( card.id )}
             onTouch={() => this.onCardTouch( card )}
             onMove={( x, y ) => this.onCardMove( card, x, y )}
@@ -136,6 +136,8 @@ class CardField extends React.Component<Props, State>
         open={this.state.contextMenuOpen}
         onClose={() => this.setState( { contextMenuOpen: false } )}
         actions={[
+          { label: 'Flip Cards Face Up', onClick: () => this.onFlipCards( false ) },
+          { label: 'Flip Cards Face Down', onClick: () => this.onFlipCards( true ) },
           { label: 'Gather Cards Here', onClick: this.onGatherHereClick },
           { label: 'Scatter Cards', onClick: this.onScatterCardsClick }
         ]}
@@ -301,6 +303,21 @@ class CardField extends React.Component<Props, State>
     }
   }
 
+  private onFlipCards = ( faceDown: boolean ) =>
+  {
+    if( this.props.game )
+    {
+      if( this.props.selectedCardIds.size === 0 )
+      {
+        this.props.flipCards( this.props.game.id, Object.keys( this.props.cards ), faceDown );
+      }
+      else
+      {
+        this.props.flipCards( this.props.game.id, Array.from( this.props.selectedCardIds ), faceDown );
+      }
+    }
+  }
+
   private onGatherHereClick = () =>
   {
     if( this.props.game )
@@ -345,6 +362,7 @@ export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
     gatherCards,
     scatterCards,
     selectCards,
-    deselectCards
+    deselectCards,
+    flipCards
   }
 )( CardField );

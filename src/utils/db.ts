@@ -1,7 +1,7 @@
 import * as firebase from 'firebase';
 import 'firebase/firestore';
 
-import { Card } from 'utils/card';
+import { Card, CardBase, CardUpdate } from 'utils/card';
 import { Game } from 'utils/game';
 
 firebase.initializeApp( {
@@ -31,7 +31,7 @@ export async function getGame( gameId: string )
   return gameRef.data() as Game | null;
 }
 
-export async function createGame( cards: Card[] )
+export async function createGame( cards: CardBase[] )
 {
   let batch = db.batch();
 
@@ -41,7 +41,7 @@ export async function createGame( cards: Card[] )
 
   let cardsRef = gameDoc.collection( 'cards' );
 
-  for( let { id, ...card } of cards )
+  for( let card of cards )
   {
     batch.set( cardsRef.doc(), card );
   }
@@ -57,7 +57,7 @@ export async function getCards( gameId: string )
   return cards.docs.map( snapshotToDataCreator<Game>() );
 }
 
-export async function saveCards( gameId: string, cards: Card[] )
+export async function saveCards( gameId: string, cards: CardUpdate[] )
 {
   let cardsCollection = db.collection( 'games' ).doc( gameId ).collection( 'cards' );
   let batch = db.batch();
@@ -95,4 +95,13 @@ export async function moveCard( gameId: string, cardId: string, x: number, y: nu
     y,
     index: firebase.firestore.FieldValue.serverTimestamp()
   } );
+}
+
+export async function flipCards( gameId: string, cardIds: string[], faceDown: boolean )
+{
+  let cards = cardIds.map( ( id ) => ( {
+    id,
+    faceDown
+  } ) );
+  await saveCards( gameId, cards );
 }

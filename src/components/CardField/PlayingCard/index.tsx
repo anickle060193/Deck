@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Suit, Rank } from 'utils/card';
+import { Suit, Rank, Card } from 'utils/card';
 
 import './styles.css';
 
@@ -158,8 +158,7 @@ interface Props
   y: number;
   width: number;
   height: number;
-  suit: Suit;
-  rank: Rank;
+  card: Card;
   selected: boolean;
   onTouch: () => void;
   onMove: ( x: number, y: number ) => void;
@@ -219,14 +218,15 @@ export default class PlayingCard extends React.Component<Props, State>
 
   render()
   {
-    let { width, height, suit, rank } = this.props;
+    let { width, height, card: { suit, rank, faceDown }, selected } = this.props;
     let { x, y } = this.state;
 
     return (
       <div
         className={[
           'playing-card',
-          this.props.selected ? 'selected' : ''
+          selected ? 'selected' : '',
+          faceDown ? 'face-down' : 'face-up'
         ].join( ' ' )}
         style={{
           left: x,
@@ -236,28 +236,31 @@ export default class PlayingCard extends React.Component<Props, State>
         }}
         onMouseDown={this.onMouseDown}
       >
-        <SuitPips
-          suit={suit}
-          rank={rank}
-          cardWidth={width}
-          cardHeight={height}
-        />
-        <span
-          className="rank-text"
-          style={{
-            color: suitToColor( suit )
-          }}
-        >
-          {rankToText( rank )}
-        </span>
-        <span
-          className="rank-text-inverse"
-          style={{
-            color: suitToColor( suit )
-          }}
-        >
-          {rankToText( rank )}
-        </span>
+        {!faceDown &&
+          <>
+          <SuitPips
+            suit={suit}
+            rank={rank}
+            cardWidth={width}
+            cardHeight={height}
+          />
+          <span
+            className="rank-text"
+            style={{
+              color: suitToColor( suit )
+            }}
+          >
+            {rankToText( rank )}
+          </span>
+          <span
+            className="rank-text-inverse"
+            style={{
+              color: suitToColor( suit )
+            }}
+          >
+            {rankToText( rank )}
+          </span>
+          </>}
       </div>
     );
   }
