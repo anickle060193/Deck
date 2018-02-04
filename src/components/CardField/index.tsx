@@ -47,12 +47,17 @@ interface State
   contextMenuX: number;
   contextMenuY: number;
   contextMenuOpen: boolean;
+
+  cardContextMenuX: number;
+  cardContextMenuY: number;
+  cardContextMenuOpen: boolean;
 }
 
 class CardField extends React.Component<Props, State>
 {
-  parentRef: HTMLDivElement | null = null;
+  parentRef: HTMLDivElement | null;
   mouseDown: boolean;
+  contextCard: Card | null;
 
   constructor( props: Props )
   {
@@ -72,10 +77,16 @@ class CardField extends React.Component<Props, State>
 
       contextMenuX: -1,
       contextMenuY: -1,
-      contextMenuOpen: false
+      contextMenuOpen: false,
+
+      cardContextMenuX: -1,
+      cardContextMenuY: -1,
+      cardContextMenuOpen: false
     };
 
+    this.parentRef = null;
     this.mouseDown = false;
+    this.contextCard = null;
   }
 
   componentDidMount()
@@ -117,6 +128,9 @@ class CardField extends React.Component<Props, State>
             height={this.state.cardHeight}
             card={card}
             selected={this.props.selectedCardIds.has( card.id )}
+            showContextMenu={this.props.selectedCardIds.size === 0}
+            onContextMenu={( pageX, pageY ) => this.onCardContextMenu( card, pageX, pageY )}
+            onDoubleClick={() => this.onFlipCard( card )}
             onTouch={() => this.onCardTouch( card )}
             onMove={( x, y ) => this.onCardMove( card, x, y )}
           />
@@ -140,6 +154,16 @@ class CardField extends React.Component<Props, State>
           { label: 'Flip Cards Face Down', onClick: () => this.onFlipCards( true ) },
           { label: 'Gather Cards Here', onClick: this.onGatherHereClick },
           { label: 'Scatter Cards', onClick: this.onScatterCardsClick }
+        ]}
+      />
+
+      <ContextMenu
+        x={this.state.cardContextMenuX}
+        y={this.state.cardContextMenuY}
+        open={this.state.cardContextMenuOpen}
+        onClose={() => this.setState( { cardContextMenuOpen: false } )}
+        actions={[
+          { label: 'Flip Card', onClick: () => this.onFlipCard( this.contextCard! ) }
         ]}
       />
       </>
@@ -177,6 +201,16 @@ class CardField extends React.Component<Props, State>
         contextMenuOpen: true
       } );
     }
+  }
+
+  private onCardContextMenu = ( card: Card, pageX: number, pageY: number ) =>
+  {
+    this.contextCard = card;
+    this.setState( {
+      cardContextMenuOpen: true,
+      cardContextMenuX: pageX,
+      cardContextMenuY: pageY
+    } );
   }
 
   private onBackgroundMouseDown = ( e: React.MouseEvent<{}> ) =>
@@ -300,6 +334,14 @@ class CardField extends React.Component<Props, State>
       {
         this.props.moveCard( this.props.game.id, card.id, xRatio, yRatio );
       }
+    }
+  }
+
+  private onFlipCard = ( card: Card ) =>
+  {
+    if( this.props.game )
+    {
+      this.props.flipCards( this.props.game.id, [ card.id ], !card.faceDown );
     }
   }
 

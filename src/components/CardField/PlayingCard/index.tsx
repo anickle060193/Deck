@@ -160,6 +160,9 @@ interface Props
   height: number;
   card: Card;
   selected: boolean;
+  showContextMenu: boolean;
+  onContextMenu: ( pageX: number, pageY: number ) => void;
+  onDoubleClick: () => void;
   onTouch: () => void;
   onMove: ( x: number, y: number ) => void;
 }
@@ -234,7 +237,9 @@ export default class PlayingCard extends React.Component<Props, State>
           width: width,
           height: height,
         }}
+        onContextMenu={this.onContextMenu}
         onMouseDown={this.onMouseDown}
+        onDoubleClick={this.onDoubleClick}
       >
         {!faceDown &&
           <>
@@ -263,6 +268,25 @@ export default class PlayingCard extends React.Component<Props, State>
           </>}
       </div>
     );
+  }
+
+  private onContextMenu = ( e: React.MouseEvent<{}> ) =>
+  {
+    if( this.props.showContextMenu )
+    {
+      e.preventDefault();
+      e.stopPropagation();
+
+      this.props.onContextMenu( e.pageX, e.pageY );
+    }
+  }
+
+  private onDoubleClick = ( e: React.MouseEvent<{}> ) =>
+  {
+    e.preventDefault();
+    e.stopPropagation();
+
+    this.props.onDoubleClick();
   }
 
   private onMouseDown = ( e: React.MouseEvent<HTMLDivElement> ) =>
