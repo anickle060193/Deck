@@ -22,30 +22,43 @@
       "spaces",
       4
     ],
-    "interface-name": [true, "never-prefix"],
+    "interface-name": [
+      true,
+      "never-prefix"
+    ],
     "jsdoc-format": true,
     "jsx-no-lambda": false,
     "jsx-no-multiline-js": false,
     "label-position": true,
     "member-ordering": [
       true,
-      "public-before-private",
-      "static-before-instance",
-      "variables-before-functions"
+      {
+        "order": [
+          "private-static-field",
+          "public-static-field",
+          "private-instance-field",
+          "public-instance-field",
+          "public-constructor",
+          "private-constructor",
+          "public-instance-method",
+          "protected-instance-method",
+          "private-instance-method"
+        ]
+      }
     ],
     "no-any": true,
     "no-arg": true,
     "no-bitwise": true,
-    //"no-console": [
-    //    true,
-    //    "log",
-    //    "error",
-    //    "debug",
-    //    "info",
-    //    "time",
-    //    "timeEnd",
-    //    "trace"
-    //],
+    "no-console": [
+      true,
+      "log",
+      "error",
+      "debug",
+      "info",
+      "time",
+      "timeEnd",
+      "trace"
+    ],
     "no-consecutive-blank-lines": true,
     "no-construct": true,
     "no-debugger": true,
@@ -69,6 +82,7 @@
       "always"
     ],
     "switch-default": true,
+    "strict-type-predicates": true,
     "trailing-comma": false,
     "triple-equals": [
       true,
