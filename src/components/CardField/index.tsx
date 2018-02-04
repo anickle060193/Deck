@@ -303,6 +303,7 @@ class CardField extends React.Component<Props, State>
         {
           this.props.gatherCards( this.props.game.id, Array.from( this.props.selectedCardIds ), x, y );
         }
+        this.props.selectCards( [] );
       }
     }
   }
@@ -312,6 +313,7 @@ class CardField extends React.Component<Props, State>
     if( this.props.game )
     {
       this.props.scatterCards( this.props.game.id );
+      this.props.selectCards( [] );
     }
   }
 }
