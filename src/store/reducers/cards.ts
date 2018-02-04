@@ -8,12 +8,14 @@ export interface State
   loading: boolean;
   error: Error | null;
   cards: CardMap;
+  selectedCardIds: Set<string>;
 }
 
 const initialState: State = {
   loading: false,
   error: null,
-  cards: {}
+  cards: {},
+  selectedCardIds: new Set()
 };
 
 export const reducer: Reducer<State> = ( state = initialState, action: CardAction ) =>
@@ -48,6 +50,12 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
 
     case CardActions.ScatterCards:
       return state;
+
+    case CardActions.SelectCards:
+      return {
+        ...state,
+        selectedCardIds: new Set( action.cardIds )
+      };
 
     default:
       return state;

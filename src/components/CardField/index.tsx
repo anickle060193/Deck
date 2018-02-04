@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Stage, Layer } from 'react-konva';
+import { Stage, Layer, Rect } from 'react-konva';
 
 import PlayingCard from 'components/CardField/PlayingCard';
 import ContextMenu from 'components/ContextMenu';
-import { Card, cardSorter } from 'utils/card';
-import { moveCard, touchCard, gatherCards, scatterCards } from 'store/actions/cards';
+import Selection from 'components/CardField/Selection';
+
+import { Card, cardSorter, toCardArray } from 'utils/card';
+import { moveCard, touchCard, gatherCards, scatterCards, selectCards } from 'store/actions/cards';
 import { Game } from 'utils/game';
 
 const CARD_RATIO = 88.9 / 63.50;
@@ -14,6 +16,7 @@ interface PropsFromState
 {
   game: Game | null;
   cards: { [ id: string ]: Card };
+  selectedCardIds: Set<String>;
 }
 
 interface PropsFromDispatch
@@ -22,6 +25,7 @@ interface PropsFromDispatch
   touchCard: typeof touchCard;
   gatherCards: typeof gatherCards;
   scatterCards: typeof scatterCards;
+  selectCards: typeof selectCards;
 }
 
 type Props = PropsFromState & PropsFromDispatch;
@@ -32,6 +36,14 @@ interface State
   height: number;
   cardWidth: number;
   cardHeight: number;
+
+  mouseDown: boolean;
+  selectionX: number;
+  selectionY: number;
+  selectionWidth: number;
+  selectionHeight: number;
+  selectionVisible: boolean;
+
   contextMenuOffsetX: number;
   contextMenuOffsetY: number;
   contextMenuX: number;
@@ -52,6 +64,14 @@ class CardField extends React.Component<Props, State>
       height: 100,
       cardWidth: 100,
       cardHeight: 100 * CARD_RATIO,
+
+      mouseDown: false,
+      selectionX: 0,
+      selectionY: 0,
+      selectionWidth: 0,
+      selectionHeight: 0,
+      selectionVisible: false,
+
       contextMenuOffsetX: 0,
       contextMenuOffsetY: 0,
       contextMenuX: -1,
@@ -65,11 +85,17 @@ class CardField extends React.Component<Props, State>
     this.updateSize();
 
     window.addEventListener( 'resize', this.updateSize );
+
+    document.addEventListener( 'mousemove', this.onMouseMove );
+    document.addEventListener( 'mouseup', this.onMouseUp );
   }
 
   componentWillUnmount()
   {
     window.removeEventListener( 'resize', this.updateSize );
+
+    document.removeEventListener( 'mousemove', this.onMouseMove );
+    document.removeEventListener( 'mouseup', this.onMouseUp );
   }
 
   render()
@@ -89,9 +115,16 @@ class CardField extends React.Component<Props, State>
         <Stage
           width={this.state.width}
           height={this.state.height}
-          onContentClick={this.onContentClick}
         >
           <Layer>
+            <Rect
+              x={0}
+              y={0}
+              width={this.state.width}
+              height={this.state.width}
+              onClick={this.onBackgroundClick}
+              onMouseDown={this.onBackgroundMouseDown}
+            />
             {cards.map( ( card ) => (
               <PlayingCard
                 key={card.id}
@@ -101,10 +134,18 @@ class CardField extends React.Component<Props, State>
                 height={this.state.cardHeight}
                 suit={card.suit}
                 rank={card.rank}
+                selected={this.props.selectedCardIds.has( card.id )}
                 onTouch={() => this.onCardTouch( card )}
                 onMove={( x, y ) => this.onCardMove( card, x, y )}
               />
             ) )}
+            <Selection
+              x={this.state.selectionX}
+              y={this.state.selectionY}
+              width={this.state.selectionWidth}
+              height={this.state.selectionHeight}
+              visible={this.state.selectionVisible}
+            />
           </Layer>
         </Stage>
         <ContextMenu
@@ -139,7 +180,7 @@ class CardField extends React.Component<Props, State>
     }
   }
 
-  private onContentClick = ( e: KonvaTypes.MouseEvent ) =>
+  private onBackgroundClick = ( e: KonvaTypes.MouseEvent ) =>
   {
     if( e.evt.button === 2 )
     {
@@ -156,8 +197,90 @@ class CardField extends React.Component<Props, State>
     }
   }
 
+  private onBackgroundMouseDown = ( e: KonvaTypes.MouseEvent ) =>
+  {
+    if( e.evt.button === 0 )
+    {
+      this.setState( {
+        mouseDown: true,
+        selectionX: e.evt.offsetX,
+        selectionY: e.evt.offsetY
+      } );
+    }
+  }
+
+  private onMouseMove = ( e: MouseEvent ) =>
+  {
+    if( e.button === 0 && this.state.mouseDown )
+    {
+      let x = e.clientX - this.parentRef!.offsetLeft;
+      let y = e.clientY - this.parentRef!.offsetTop;
+      this.setState( {
+        mouseDown: true,
+        selectionWidth: x - this.state.selectionX,
+        selectionHeight: y - this.state.selectionY,
+        selectionVisible: true
+      } );
+    }
+  }
+
+  private onMouseUp = ( e: MouseEvent ) =>
+  {
+    if( e.button === 0 )
+    {
+      if( this.state.mouseDown )
+      {
+        this.onSelection();
+      }
+
+      this.setState( {
+        mouseDown: false,
+        selectionVisible: false
+      } );
+    }
+  }
+
+  private onSelection = () =>
+  {
+    let { selectionX, selectionY, selectionWidth, selectionHeight } = this.state;
+
+    let left: number, top: number, right: number, bottom: number;
+    if( selectionWidth < 0 )
+    {
+      left = selectionX + selectionWidth;
+      right = selectionX;
+    }
+    else
+    {
+      left = selectionX;
+      right = selectionX + selectionWidth;
+    }
+    if( selectionHeight < 0 )
+    {
+      top = selectionY + selectionHeight;
+      bottom = selectionY;
+    }
+    else
+    {
+      top = selectionY;
+      bottom = selectionY + selectionHeight;
+    }
+
+    left /= this.state.width;
+    right /= this.state.width;
+    top /= this.state.height;
+    bottom /= this.state.height;
+
+    let selectedCardIds = toCardArray( this.props.cards )
+      .filter( ( { x, y } ) => left <= x && x <= right && top <= y && y <= bottom )
+      .map( ( { id } ) => id );
+
+    this.props.selectCards( selectedCardIds );
+  }
+
   private onCardTouch = ( card: Card ) =>
   {
+    this.props.selectCards( [] );
     if( this.props.game )
     {
       this.props.touchCard( this.props.game.id, card.id );
@@ -200,12 +323,14 @@ class CardField extends React.Component<Props, State>
 export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
   ( state ) => ( {
     game: state.games.game,
-    cards: state.cards.cards
+    cards: state.cards.cards,
+    selectedCardIds: state.cards.selectedCardIds
   } ),
   {
     moveCard,
     touchCard,
     gatherCards,
-    scatterCards
+    scatterCards,
+    selectCards
   }
 )( CardField );

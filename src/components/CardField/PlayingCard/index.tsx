@@ -153,10 +153,11 @@ interface Props
 {
   x: number;
   y: number;
-  suit: Suit;
-  rank: Rank;
   width: number;
   height: number;
+  suit: Suit;
+  rank: Rank;
+  selected: boolean;
   onTouch: () => void;
   onMove: ( x: number, y: number ) => void;
 }
@@ -167,6 +168,7 @@ export default class PlayingCard extends React.Component<Props>
   {
     let { width, height, suit, rank } = this.props;
 
+    let selectionBorderWidth = 2;
     let borderWidth = 1;
     let textOffset = 4;
 
@@ -175,10 +177,18 @@ export default class PlayingCard extends React.Component<Props>
         x={this.props.x}
         y={this.props.y}
         draggable={true}
-        onTouchStart={this.props.onTouch}
         onMouseDown={this.onMouseDown}
         onDragEnd={this.onDragEnd}
       >
+        {this.props.selected &&
+          <Rect
+            x={-selectionBorderWidth}
+            y={-selectionBorderWidth}
+            width={width + selectionBorderWidth * 2}
+            height={height + selectionBorderWidth * 2}
+            fill="#70a6ff88"
+            cornerRadius={5}
+          />}
         <Rect
           x={0}
           y={0}
@@ -224,7 +234,7 @@ export default class PlayingCard extends React.Component<Props>
     );
   }
 
-  private onMouseDown = ( e: KonvaTypes.Event<React.MouseEvent<{}>, {}> ) =>
+  private onMouseDown = ( e: KonvaTypes.MouseEvent ) =>
   {
     if( e.evt.button === 0 )
     {
@@ -232,7 +242,7 @@ export default class PlayingCard extends React.Component<Props>
     }
   }
 
-  private onDragEnd = ( e: KonvaTypes.Event<React.MouseEvent<{}>, Konva.Group> ) =>
+  private onDragEnd = ( e: KonvaTypes.MouseEvent<Konva.Group> ) =>
   {
     let position = e.target.getPosition();
     this.props.onMove( position.x, position.y );

@@ -11,6 +11,7 @@ import
   TouchCardAction,
   GatherCardsAction,
   ScatterCardsAction,
+  selectCards,
 } from 'store/actions/cards';
 import * as db from 'utils/db';
 import { Card, toCardMap, CardMap, toCardArray, cardSorter, shuffle } from 'utils/card';
@@ -35,6 +36,7 @@ function* retrieveCards( action: RetrieveCardsAction )
   channel.close();
 
   yield put( setCards( {} ) );
+  yield put( selectCards( [] ) );
 }
 
 function* touchCard( action: TouchCardAction )
