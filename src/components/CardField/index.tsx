@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Stage, Layer, Rect } from 'react-konva';
+// import { Stage, Layer, Rect } from 'react-konva';
 
 import PlayingCard from 'components/CardField/PlayingCard';
 import ContextMenu from 'components/ContextMenu';
-import Selection from 'components/CardField/Selection';
+// import Selection from 'components/CardField/Selection';
 
 import { Card, cardSorter, toCardArray } from 'utils/card';
 import { moveCard, touchCard, gatherCards, scatterCards, selectCards } from 'store/actions/cards';
@@ -108,46 +108,24 @@ class CardField extends React.Component<Props, State>
 
     return (
       <div
-        className="w-100 h-100"
+        className="w-100 h-100 position-relative"
         ref={( ref ) => this.parentRef = ref}
         onContextMenu={( e ) => e.preventDefault()}
       >
-        <Stage
-          width={this.state.width}
-          height={this.state.height}
-        >
-          <Layer>
-            <Rect
-              x={0}
-              y={0}
-              width={this.state.width}
-              height={this.state.width}
-              onClick={this.onBackgroundClick}
-              onMouseDown={this.onBackgroundMouseDown}
-            />
-            {cards.map( ( card ) => (
-              <PlayingCard
-                key={card.id}
-                x={card.x * this.state.width}
-                y={card.y * this.state.height}
-                width={this.state.cardWidth}
-                height={this.state.cardHeight}
-                suit={card.suit}
-                rank={card.rank}
-                selected={this.props.selectedCardIds.has( card.id )}
-                onTouch={() => this.onCardTouch( card )}
-                onMove={( x, y ) => this.onCardMove( card, x, y )}
-              />
-            ) )}
-            <Selection
-              x={this.state.selectionX}
-              y={this.state.selectionY}
-              width={this.state.selectionWidth}
-              height={this.state.selectionHeight}
-              visible={this.state.selectionVisible}
-            />
-          </Layer>
-        </Stage>
+        {cards.map( ( card ) => (
+          <PlayingCard
+            key={card.id}
+            x={card.x * this.state.width}
+            y={card.y * this.state.height}
+            width={this.state.cardWidth}
+            height={this.state.cardHeight}
+            suit={card.suit}
+            rank={card.rank}
+            selected={this.props.selectedCardIds.has( card.id )}
+            onTouch={() => this.onCardTouch( card )}
+            onMove={( x, y ) => this.onCardMove( card, x, y )}
+          />
+        ) )}
         <ContextMenu
           x={this.state.contextMenuX + this.state.contextMenuOffsetX}
           y={this.state.contextMenuY + this.state.contextMenuOffsetY}
@@ -180,6 +158,7 @@ class CardField extends React.Component<Props, State>
     }
   }
 
+  /*
   private onBackgroundClick = ( e: KonvaTypes.MouseEvent ) =>
   {
     if( e.evt.button === 2 )
@@ -208,6 +187,7 @@ class CardField extends React.Component<Props, State>
       } );
     }
   }
+  */
 
   private onMouseMove = ( e: MouseEvent ) =>
   {

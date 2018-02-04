@@ -1,8 +1,8 @@
 import * as React from 'react';
-import * as Konva from 'konva';
-import { Rect, Path, Group, Text } from 'react-konva';
 
 import { Suit, Rank } from 'utils/card';
+
+import './styles.css';
 
 function mapCreator<K extends string, V>( keyName: string, mapName: string, map: { [ key: string ]: V } )
 {
@@ -24,10 +24,10 @@ const suitToColor = mapCreator<Suit, string>( 'suit', 'color', {
 } );
 
 const suitToPath = mapCreator<Suit, string>( 'suit', 'path', {
-  [ Suit.Spades ]: 'm-26 -14c-31 31-1 53 23 39-4 16-7 17-10 21l26 0c-3-4-6-5-10-21 25 14 51-11 23-39-18-16-25-30-26-32-1 1-10 16-26 32z',
-  [ Suit.Clubs ]: 'm-8 -6c-15-7-36 1-31 20 5 18 26 14 34 3-3 21-9 25-12 29l35 0c-4-5-10-8-14-29 8 11 30 15 35-3 5-18-17-28-31-20 14-10 19-40-8-40-26 0-22 31-8 40z',
-  [ Suit.Diamonds ]: 'm0 -48.07c-10.45 16.72-21.945 32.395-33.44 48.07 12.54 15.675 24.035 31.35 33.44 48.07 9.405-16.72 20.9-33.44 33.44-48.07-12.54-15.675-24.035-32.395-33.44-48.07z',
-  [ Suit.Hearts ]: 'm2 46c-1 0-1-1-1-2-3-8-7-16-14-25-3-4-5-7-12-15-8-10-10-13-13-17-1-3-3-7-3-9 0-3 0-7 0-9 2-8 9-15 18-15 11-1 19 4 24 14l1 2 1-2c1-2 2-4 4-6 5-6 10-8 17-8 3 0 5 0 8 1 3 1 6 3 9 6 7 8 6 19-2 32-2 3-6 7-11 13-5 7-8 10-11 14-7 8-11 16-13 24-1 1-1 2-1 2-1 1-1 1-1 0z'
+  [ Suit.Spades ]: 'M24 36C-7 67 23 89 47 75 43 91 40 92 37 96L63 96C60 92 57 91 53 75 78 89 104 64 76 36 58 20 51 6 50 4 49 5 40 20 24 36Z',
+  [ Suit.Clubs ]: 'M42 44C27 37 6 45 11 64 16 82 37 78 45 67 42 88 36 92 33 96L68 96C64 91 58 88 54 67 62 78 84 82 89 64 94 46 72 36 58 44 72 34 77 4 50 4 24 4 28 35 42 44Z',
+  [ Suit.Diamonds ]: 'M50 1.93C39.55 18.65 28.055 34.325 16.56 50 29.1 65.675 40.595 81.35 50 98.07 59.405 81.35 70.9 64.63 83.44 50 70.9 34.325 59.405 17.605 50 1.93Z',
+  [ Suit.Hearts ]: 'M52 96C51 96 51 95 51 94 48 86 44 78 37 69 34 65 32 62 25 54 17 44 15 41 12 37 11 34 9 30 9 28 9 25 9 21 9 19 11 11 18 4 27 4 38 3 46 8 51 18L52 20 53 18C54 16 55 14 57 12 62 6 67 4 74 4 77 4 79 4 82 5 85 6 88 8 91 11 98 19 97 30 89 43 87 46 83 50 78 56 73 63 70 66 67 70 60 78 56 86 54 94 53 95 53 96 53 96 52 97 52 97 52 96Z'
 } );
 
 const SuitPip: React.SFC<{
@@ -38,17 +38,20 @@ const SuitPip: React.SFC<{
   y: number;
   scale?: number;
 }> = ( { suit, cardWidth, cardHeight, x, y, scale = 1.0 } ) => (
-  <Path
-    x={x}
-    y={y}
-    scale={{
-      x: ( cardWidth * 0.0025 ) * scale,
-      y: ( cardWidth * 0.0025 ) * scale
+  <svg
+    width={( cardWidth * 0.0025 ) * scale * 100}
+    height={( cardWidth * 0.0025 ) * scale * 100}
+    viewBox="0 0 100 100"
+    style={{
+      left: x,
+      top: y
     }}
-    fill={suitToColor( suit )}
-    stroke={suitToColor( suit )}
-    data={suitToPath( suit )}
-  />
+  >
+    <path
+      d={suitToPath( suit )}
+      style={{ fill: suitToColor( suit ) }}
+    />
+  </svg>
 );
 
 const CENTER = 0.5;
@@ -162,92 +165,143 @@ interface Props
   onMove: ( x: number, y: number ) => void;
 }
 
-export default class PlayingCard extends React.Component<Props>
+interface State
 {
+  x: number;
+  y: number;
+}
+
+export default class PlayingCard extends React.Component<Props, State>
+{
+  mouseDown: boolean;
+  lastX: number;
+  lastY: number;
+
+  constructor( props: Props )
+  {
+    super( props );
+
+    this.state = {
+      x: this.props.x,
+      y: this.props.y
+    };
+
+    this.mouseDown = false;
+    this.lastX = 0;
+    this.lastY = 0;
+  }
+
+  componentWillReceiveProps( newProps: Props )
+  {
+    if( newProps.x !== this.props.x || newProps.y !== this.props.y )
+    {
+      if( !this.mouseDown )
+      {
+        this.setState( {
+          x: newProps.x,
+          y: newProps.y
+        } );
+      }
+    }
+  }
+
+  componentDidMount()
+  {
+    document.addEventListener( 'mousemove', this.onMouseMove );
+    document.addEventListener( 'mouseup', this.onMouseUp );
+  }
+
+  componentWillUnmount()
+  {
+    document.removeEventListener( 'mousemove', this.onMouseMove );
+    document.removeEventListener( 'mouseup', this.onMouseUp );
+  }
+
   render()
   {
     let { width, height, suit, rank } = this.props;
-
-    let selectionBorderWidth = 2;
-    let borderWidth = 1;
-    let textOffset = 4;
+    let { x, y } = this.state;
 
     return (
-      <Group
-        x={this.props.x}
-        y={this.props.y}
-        draggable={true}
+      <div
+        className={[
+          'playing-card',
+          this.props.selected ? 'selected' : ''
+        ].join( ' ' )}
+        style={{
+          left: x,
+          top: y,
+          width: width,
+          height: height,
+        }}
         onMouseDown={this.onMouseDown}
-        onMouseUp={this.onMouseUp}
       >
-        {this.props.selected &&
-          <Rect
-            x={-selectionBorderWidth}
-            y={-selectionBorderWidth}
-            width={width + selectionBorderWidth * 2}
-            height={height + selectionBorderWidth * 2}
-            fill="#70a6ff88"
-            cornerRadius={5}
-          />}
-        <Rect
-          x={0}
-          y={0}
-          width={width}
-          height={height}
-          fill="darkgray"
-          cornerRadius={5}
-        />
-        <Rect
-          x={borderWidth}
-          y={borderWidth}
-          width={width - 2 * borderWidth}
-          height={height - 2 * borderWidth}
-          fill="white"
-          cornerRadius={4}
-        />
         <SuitPips
           suit={suit}
           rank={rank}
           cardWidth={width}
           cardHeight={height}
         />
-        <Text
-          text={rankToText( rank )}
-          fontFamily="Roboto"
-          fontSize={16}
-          fill={suitToColor( suit )}
-          fontStyle="bold"
-          x={textOffset}
-          y={textOffset}
-        />
-        <Text
-          text={rankToText( rank )}
-          fontFamily="Roboto"
-          fontSize={16}
-          fill={suitToColor( suit )}
-          fontStyle="bold"
-          rotation={180}
-          x={width - textOffset}
-          y={height - textOffset}
-        />
-      </Group>
+        <span
+          className="rank-text"
+          style={{
+            color: suitToColor( suit )
+          }}
+        >
+          {rankToText( rank )}
+        </span>
+        <span
+          className="rank-text-inverse"
+          style={{
+            color: suitToColor( suit )
+          }}
+        >
+          {rankToText( rank )}
+        </span>
+      </div>
     );
   }
 
-  private onMouseDown = ( e: KonvaTypes.MouseEvent ) =>
+  private onMouseDown = ( e: React.MouseEvent<HTMLDivElement> ) =>
   {
-    if( e.evt.button === 0 )
+    if( e.button === 0 )
     {
+      this.mouseDown = true;
+      this.lastX = e.screenX;
+      this.lastY = e.screenY;
+
+      e.stopPropagation();
+
       this.props.onTouch();
     }
   }
 
-  private onMouseUp = ( e: KonvaTypes.MouseEvent<{}, Konva.Group> ) =>
+  private onMouseMove = ( e: MouseEvent ) =>
   {
-    if( e.evt.button === 0 )
+    if( this.mouseDown )
     {
-      let position = e.currentTarget.getPosition();
-      this.props.onMove( position.x, position.y );
+      let xDiff = e.screenX - this.lastX;
+      let yDiff = e.screenY - this.lastY;
+
+      this.setState( ( { x, y } ) => ( { x: x + xDiff, y: y + yDiff } ) );
+
+      e.stopPropagation();
+
+      this.lastX = e.screenX;
+      this.lastY = e.screenY;
+    }
+  }
+
+  private onMouseUp = ( e: MouseEvent ) =>
+  {
+    if( this.mouseDown )
+    {
+      this.mouseDown = false;
+
+      e.stopPropagation();
+      e.cancelBubble = true;
+
+      this.props.onMove( this.state.x, this.state.y );
     }
   }
 }
