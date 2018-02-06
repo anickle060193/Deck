@@ -2,11 +2,14 @@
   "name": "deck",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://anickle060193.github.io/deck",
   "scripts": {
     "start": "react-scripts-ts start",
     "build": "react-scripts-ts build",
     "test": "react-scripts-ts test --env=jsdom",
-    "eject": "react-scripts-ts eject"
+    "eject": "react-scripts-ts eject",
+    "predeploy": "yarn run build",
+    "deploy": "gh-pages -d build"
   },
   "dependencies": {
     "bootstrap": "^4.0.0",
@@ -28,6 +31,7 @@
     "@types/react-dom": "^16.0.3",
     "@types/react-redux": "^5.0.14",
     "@types/redux-logger": "^3.0.5",
+    "gh-pages": "^1.1.0",
     "typescript": "^2.6.2"
   }
 }
