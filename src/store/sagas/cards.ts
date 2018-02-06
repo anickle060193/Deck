@@ -12,6 +12,8 @@ import
   ScatterCardsAction,
   selectCards,
   FlipCardsAction,
+  ShuffleCardsAction,
+  FlipDeckAction,
 } from 'store/actions/cards';
 import * as db from 'utils/db';
 import { Card, toCardMap, CardMap, toCardArray, cardSorter, shuffle } from 'utils/card';
@@ -78,6 +80,38 @@ function* flipCards( action: FlipCardsAction )
   yield call( db.flipCards, action.gameId, action.cardIds, action.faceDown );
 }
 
+function* shuffleCards( action: ShuffleCardsAction )
+{
+  let cardMap: CardMap = yield select<RootState>( ( state ) => state.cards.cards );
+  let cards = toCardArray( cardMap )
+    .filter( ( { id } ) => action.cardIds.indexOf( id ) !== -1 );
+
+  shuffle( cards ).forEach( ( card, i ) =>
+  {
+    card.index = new Date( i );
+  } );
+  yield call( db.saveCards, action.gameId, cards );
+}
+
+function* flipDeck( action: FlipDeckAction )
+{
+  let cardMap: CardMap = yield select<RootState>( ( state ) => state.cards.cards );
+  let cards = toCardArray( cardMap )
+    .filter( ( { id } ) => action.cardIds.indexOf( id ) !== -1 )
+    .sort( cardSorter );
+
+  for( let i = 0; i < cards.length / 2; i++ )
+  {
+    let index = cards[ i ].index;
+    cards[ i ].index = cards[ cards.length - i - 1 ].index;
+    cards[ cards.length - i - 1 ].index = index;
+  }
+
+  cards.forEach( ( card ) => card.faceDown = !card.faceDown );
+
+  yield call( db.saveCards, action.gameId, cards );
+}
+
 export default function* ()
 {
   yield takeEvery( CardActions.RetrieveCards, retrieveCards );
@@ -85,4 +119,6 @@ export default function* ()
   yield takeEvery( CardActions.GatherCards, gatherCards );
   yield takeEvery( CardActions.ScatterCards, scatterCards );
   yield takeEvery( CardActions.FlipCards, flipCards );
+  yield takeEvery( CardActions.ShuffleCards, shuffleCards );
+  yield takeEvery( CardActions.FlipDeck, flipDeck );
 }

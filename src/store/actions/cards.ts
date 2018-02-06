@@ -13,7 +13,9 @@ export const enum CardActions
   ScatterCards = 'SCATTER_CARDS__CARDS',
   SelectCards = 'SELECT_CARDS__CARDS',
   DeselectCards = 'DESELECT_CARDS__CARDS',
-  FlipCards = 'FLIP_CARDS__CARDS'
+  FlipCards = 'FLIP_CARDS__CARDS',
+  ShuffleCards = 'SHUFFLE_CARDS__CARDS',
+  FlipDeck = 'FLIP_DECK__CARDS'
 }
 
 export interface RetrieveCardsAction extends Action
@@ -84,6 +86,20 @@ export interface FlipCardsAction extends Action
   faceDown: boolean;
 }
 
+export interface ShuffleCardsAction extends Action
+{
+  type: CardActions.ShuffleCards;
+  gameId: string;
+  cardIds: string[];
+}
+
+export interface FlipDeckAction extends Action
+{
+  type: CardActions.FlipDeck;
+  gameId: string;
+  cardIds: string[];
+}
+
 export type CardAction = (
   RetrieveCardsAction |
   StopRetrievingCardsAction |
@@ -94,7 +110,9 @@ export type CardAction = (
   ScatterCardsAction |
   SelectCardsAction |
   DeselectCardsAction |
-  FlipCardsAction
+  FlipCardsAction |
+  ShuffleCardsAction |
+  FlipDeckAction
 );
 
 export const retrieveCards = ( gameId: string ): RetrieveCardsAction => ( {
@@ -153,4 +171,16 @@ export const flipCards = ( gameId: string, cardIds: string[], faceDown: boolean 
   gameId,
   cardIds,
   faceDown
+} );
+
+export const shuffleCards = ( gameId: string, cardIds: string[] ): ShuffleCardsAction => ( {
+  type: CardActions.ShuffleCards,
+  gameId,
+  cardIds
+} );
+
+export const flipDeck = ( gameId: string, cardIds: string[] ): FlipDeckAction => ( {
+  type: CardActions.FlipDeck,
+  gameId,
+  cardIds
 } );

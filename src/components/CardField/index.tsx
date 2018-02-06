@@ -6,7 +6,18 @@ import ContextMenu from 'components/ContextMenu';
 import Selection from 'components/CardField/Selection';
 
 import { Card, cardSorter, toCardArray } from 'utils/card';
-import { moveCard, touchCard, gatherCards, scatterCards, selectCards, deselectCards, flipCards } from 'store/actions/cards';
+import
+{
+  moveCard,
+  touchCard,
+  gatherCards,
+  scatterCards,
+  selectCards,
+  deselectCards,
+  flipCards,
+  shuffleCards,
+  flipDeck
+} from 'store/actions/cards';
 import { Game } from 'utils/game';
 
 const CARD_RATIO = 88.9 / 63.50;
@@ -15,7 +26,7 @@ interface PropsFromState
 {
   game: Game;
   cards: { [ id: string ]: Card };
-  selectedCardIds: Set<String>;
+  selectedCardIds: Set<string>;
 }
 
 interface PropsFromDispatch
@@ -27,6 +38,8 @@ interface PropsFromDispatch
   selectCards: typeof selectCards;
   deselectCards: typeof deselectCards;
   flipCards: typeof flipCards;
+  shuffleCards: typeof shuffleCards;
+  flipDeck: typeof flipDeck;
 }
 
 type Props = PropsFromState & PropsFromDispatch;
@@ -118,6 +131,7 @@ class CardField extends React.Component<Props, State>
         ref={( ref ) => this.parentRef = ref}
         onContextMenu={this.onContextMenu}
         onMouseDown={this.onBackgroundMouseDown}
+        onKeyPress={console.log}
       >
         {cards.map( ( card ) => (
           <PlayingCard
@@ -153,7 +167,9 @@ class CardField extends React.Component<Props, State>
           { label: 'Flip Cards Face Up', onClick: () => this.onFlipCards( false ) },
           { label: 'Flip Cards Face Down', onClick: () => this.onFlipCards( true ) },
           { label: 'Gather Cards Here', onClick: this.onGatherHereClick },
-          { label: 'Scatter Cards', onClick: this.onScatterCardsClick }
+          { label: 'Scatter Cards', onClick: this.onScatterCardsClick },
+          { label: 'Shuffle Cards', onClick: this.onShuffleCardsClick },
+          { label: 'Flip Deck', onClick: this.onFlipDeck }
         ]}
       />
 
@@ -185,6 +201,18 @@ class CardField extends React.Component<Props, State>
         cardWidth,
         cardHeight
       } );
+    }
+  }
+
+  private getSelectedOrAllCardIds()
+  {
+    if( this.props.selectedCardIds.size === 0 )
+    {
+      return Object.keys( this.props.cards );
+    }
+    else
+    {
+      return Array.from( this.props.selectedCardIds );
     }
   }
 
@@ -338,14 +366,7 @@ class CardField extends React.Component<Props, State>
 
   private onFlipCards = ( faceDown: boolean ) =>
   {
-    if( this.props.selectedCardIds.size === 0 )
-    {
-      this.props.flipCards( this.props.game.id, Object.keys( this.props.cards ), faceDown );
-    }
-    else
-    {
-      this.props.flipCards( this.props.game.id, Array.from( this.props.selectedCardIds ), faceDown );
-    }
+    this.props.flipCards( this.props.game.id, this.getSelectedOrAllCardIds(), faceDown );
   }
 
   private onGatherHereClick = () =>
@@ -355,22 +376,23 @@ class CardField extends React.Component<Props, State>
       let x = ( this.state.contextMenuX - this.parentRef.offsetLeft - this.state.cardWidth / 2 ) / this.state.width;
       let y = ( this.state.contextMenuY - this.parentRef.offsetTop - this.state.cardHeight / 2 ) / this.state.height;
 
-      if( this.props.selectedCardIds.size === 0 )
-      {
-        this.props.gatherCards( this.props.game.id, Object.keys( this.props.cards ), x, y );
-      }
-      else
-      {
-        this.props.gatherCards( this.props.game.id, Array.from( this.props.selectedCardIds ), x, y );
-      }
-      this.props.deselectCards();
+      this.props.gatherCards( this.props.game.id, this.getSelectedOrAllCardIds(), x, y );
     }
   }
 
   private onScatterCardsClick = () =>
   {
     this.props.scatterCards( this.props.game.id );
-    this.props.deselectCards();
+  }
+
+  private onShuffleCardsClick = () =>
+  {
+    this.props.shuffleCards( this.props.game.id, this.getSelectedOrAllCardIds() );
+  }
+
+  private onFlipDeck = () =>
+  {
+    this.props.flipDeck( this.props.game.id, this.getSelectedOrAllCardIds() );
   }
 }
 
@@ -387,6 +409,8 @@ export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
     scatterCards,
     selectCards,
     deselectCards,
-    flipCards
+    flipCards,
+    shuffleCards,
+    flipDeck
   }
 )( CardField );

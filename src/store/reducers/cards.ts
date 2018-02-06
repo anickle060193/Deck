@@ -86,6 +86,12 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
     case CardActions.FlipCards:
       return state;
 
+    case CardActions.ShuffleCards:
+      return state;
+
+    case CardActions.FlipDeck:
+      return state;
+
     default:
       return state;
   }
