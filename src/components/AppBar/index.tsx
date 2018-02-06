@@ -42,9 +42,9 @@ class AppBar extends React.Component<Props, State>
     let changeGameDisabled = ( this.props.gameCreating || this.props.gameLoading );
 
     return (
-      <nav className="appbar navbar navbar-expand-lg fixed-top navbar-dark bg-dark" style={{ zIndex: 1000 }}>
+      <nav className="appbar navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
         <span className="navbar-brand">
-          Deck
+          Card Deck
           {this.props.game && (
             ' - ' + this.props.game.id
           )}
