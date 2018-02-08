@@ -40,13 +40,10 @@ class AppBar extends React.Component<Props, State>
 
   componentWillReceiveProps( nextProps: Props )
   {
-    console.log( 'componentWillReceiveProps()', nextProps );
     if( this.props.game !== nextProps.game )
     {
-      console.log( 'DIFFERENT' );
       if( nextProps.game )
       {
-        console.log( 'GAME' );
         this.setState( { gameId: nextProps.game.id } );
       }
     }
