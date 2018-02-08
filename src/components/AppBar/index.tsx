@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import * as CopyToClipboard from 'react-copy-to-clipboard';
 
 import { createGame, loadGame } from 'store/actions/games';
 import { Game } from 'utils/game';
@@ -37,6 +38,20 @@ class AppBar extends React.Component<Props, State>
     };
   }
 
+  componentWillReceiveProps( nextProps: Props )
+  {
+    console.log( 'componentWillReceiveProps()', nextProps );
+    if( this.props.game !== nextProps.game )
+    {
+      console.log( 'DIFFERENT' );
+      if( nextProps.game )
+      {
+        console.log( 'GAME' );
+        this.setState( { gameId: nextProps.game.id } );
+      }
+    }
+  }
+
   render()
   {
     let changeGameDisabled = ( this.props.gameCreating || this.props.gameLoading );
@@ -45,9 +60,6 @@ class AppBar extends React.Component<Props, State>
       <nav className="appbar navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
         <span className="navbar-brand">
           Card Deck
-          {this.props.game && (
-            ' - ' + this.props.game.id
-          )}
         </span>
 
         <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,18 +71,31 @@ class AppBar extends React.Component<Props, State>
             className="form-inline ml-auto mr-4 my-2 my-lg-0"
             onSubmit={this.onOpenGame}
           >
-            <input
-              className="form-control mr-sm-2"
-              type="text"
-              placeholder="Game ID"
-              disabled={changeGameDisabled}
-              defaultValue={this.state.gameId}
-              onChange={this.onOpenGameIdChange}
-            />
+            <div className="input-group">
+              <div className="input-group-prepend">
+                <CopyToClipboard text={this.props.game ? this.props.game.id : ''}>
+                  <button className="btn btn-secondary d-flex" type="button">
+                    <span className="material-icons">content_copy</span>
+                  </button>
+                </CopyToClipboard>
+              </div>
+              <input
+                className="form-control mr-sm-2"
+                type="text"
+                placeholder="Game ID"
+                disabled={changeGameDisabled}
+                value={this.state.gameId}
+                onChange={this.onOpenGameIdChange}
+              />
+            </div>
             <button
               className="btn btn-outline-success my-2 my-sm-0"
               type="submit"
-              disabled={changeGameDisabled || !!this.state.gameId.match( /^\s*$/ )}
+              disabled={
+                changeGameDisabled ||
+                ( this.props.game && this.state.gameId === this.props.game.id ) ||
+                !!this.state.gameId.match( /^\s*$/ )
+              }
             >
               Open Game
             </button>
