@@ -6,7 +6,12 @@
   box-shadow: -1px 1px 1px 0px #c5c5c588;
   user-select: none;
 
-  transition: transform 250ms;
+  transition: transform 500ms;
+}
+
+.playing-card:not( .dragging )
+{
+  transition: transform 500ms, left 500ms, top 500ms;
 }
 
 .playing-card.selected

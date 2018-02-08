@@ -120,19 +120,19 @@ const SuitPips: React.SFC<{
   cardHeight: number;
 }> = ( { suit, rank, cardWidth, cardHeight } ) => (
   <>
-  {
-    rankToLayout( rank ).map( ( [ x, y ], key ) => (
-      <SuitPip
-        key={key}
-        x={cardWidth * x}
-        y={cardHeight * y}
-        suit={suit}
-        cardWidth={cardWidth}
-        cardHeight={cardHeight}
-        scale={RANK_TO_SCALE[ rank ]}
-      />
-    ) )
-  }
+    {
+      rankToLayout( rank ).map( ( [ x, y ], key ) => (
+        <SuitPip
+          key={key}
+          x={cardWidth * x}
+          y={cardHeight * y}
+          suit={suit}
+          cardWidth={cardWidth}
+          cardHeight={cardHeight}
+          scale={RANK_TO_SCALE[ rank ]}
+        />
+      ) )
+    }
   </>
 );
 
@@ -158,6 +158,7 @@ interface Props
   y: number;
   width: number;
   height: number;
+  index: number;
   card: Card;
   selected: boolean;
   showContextMenu: boolean;
@@ -169,13 +170,13 @@ interface Props
 
 interface State
 {
+  mouseDown: boolean;
   x: number;
   y: number;
 }
 
 export default class PlayingCard extends React.Component<Props, State>
 {
-  mouseDown: boolean;
   lastX: number;
   lastY: number;
 
@@ -184,11 +185,11 @@ export default class PlayingCard extends React.Component<Props, State>
     super( props );
 
     this.state = {
+      mouseDown: false,
       x: this.props.x,
       y: this.props.y
     };
 
-    this.mouseDown = false;
     this.lastX = 0;
     this.lastY = 0;
   }
@@ -197,7 +198,7 @@ export default class PlayingCard extends React.Component<Props, State>
   {
     if( newProps.x !== this.props.x || newProps.y !== this.props.y )
     {
-      if( !this.mouseDown )
+      if( !this.state.mouseDown )
       {
         this.setState( {
           x: newProps.x,
@@ -221,21 +222,23 @@ export default class PlayingCard extends React.Component<Props, State>
 
   render()
   {
-    let { width, height, card: { suit, rank, faceDown }, selected } = this.props;
-    let { x, y } = this.state;
+    let { width, height, card: { suit, rank, faceDown }, index, selected } = this.props;
+    let { x, y, mouseDown } = this.state;
 
     return (
       <div
         className={[
           'playing-card',
           selected ? 'selected' : '',
-          faceDown ? 'face-down' : 'face-up'
+          faceDown ? 'face-down' : 'face-up',
+          mouseDown ? 'dragging' : ''
         ].join( ' ' )}
         style={{
           left: x,
           top: y,
           width: width,
           height: height,
+          zIndex: index
         }}
         onContextMenu={this.onContextMenu}
         onMouseDown={this.onMouseDown}
@@ -243,28 +246,28 @@ export default class PlayingCard extends React.Component<Props, State>
       >
         {!faceDown &&
           <>
-          <SuitPips
-            suit={suit}
-            rank={rank}
-            cardWidth={width}
-            cardHeight={height}
-          />
-          <span
-            className="rank-text"
-            style={{
-              color: suitToColor( suit )
-            }}
-          >
-            {rankToText( rank )}
-          </span>
-          <span
-            className="rank-text-inverse"
-            style={{
-              color: suitToColor( suit )
-            }}
-          >
-            {rankToText( rank )}
-          </span>
+            <SuitPips
+              suit={suit}
+              rank={rank}
+              cardWidth={width}
+              cardHeight={height}
+            />
+            <span
+              className="rank-text"
+              style={{
+                color: suitToColor( suit )
+              }}
+            >
+              {rankToText( rank )}
+            </span>
+            <span
+              className="rank-text-inverse"
+              style={{
+                color: suitToColor( suit )
+              }}
+            >
+              {rankToText( rank )}
+            </span>
           </>}
       </div>
     );
@@ -293,7 +296,7 @@ export default class PlayingCard extends React.Component<Props, State>
   {
     if( e.button === 0 )
     {
-      this.mouseDown = true;
+      this.setState( { mouseDown: true } );
       this.lastX = e.screenX;
       this.lastY = e.screenY;
 
@@ -305,7 +308,7 @@ export default class PlayingCard extends React.Component<Props, State>
 
   private onMouseMove = ( e: MouseEvent ) =>
   {
-    if( this.mouseDown )
+    if( this.state.mouseDown )
     {
       let xDiff = e.screenX - this.lastX;
       let yDiff = e.screenY - this.lastY;
@@ -321,9 +324,9 @@ export default class PlayingCard extends React.Component<Props, State>
 
   private onMouseUp = ( e: MouseEvent ) =>
   {
-    if( this.mouseDown )
+    if( this.state.mouseDown )
     {
-      this.mouseDown = false;
+      this.setState( { mouseDown: false } );
 
       e.stopPropagation();
       e.cancelBubble = true;

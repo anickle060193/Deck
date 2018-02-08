@@ -5,7 +5,9 @@ import PlayingCard from 'components/CardField/PlayingCard';
 import ContextMenu from 'components/ContextMenu';
 import Selection from 'components/CardField/Selection';
 
-import { Card, cardSorter, toCardArray } from 'utils/card';
+import { Card, toCardArray } from 'utils/card';
+import { Game } from 'utils/game';
+import { compareByKey, compareTo } from 'utils/utils';
 import
 {
   moveCard,
@@ -18,7 +20,6 @@ import
   shuffleCards,
   flipDeck
 } from 'store/actions/cards';
-import { Game } from 'utils/game';
 
 const CARD_RATIO = 88.9 / 63.50;
 
@@ -122,66 +123,72 @@ class CardField extends React.Component<Props, State>
 
   render()
   {
-    let cards = toCardArray( this.props.cards ).sort( cardSorter ).reverse();
+    let cards = toCardArray( this.props.cards ).sort( compareByKey<Card>( 'id' ) );
+    let indeces = cards
+      .map( ( card ) => card.index )
+      .filter( ( index ) => index !== null )
+      .sort( compareTo );
+    indeces.push( null );
 
     return (
       <>
-      <div
-        className="w-100 h-100 position-relative"
-        ref={( ref ) => this.parentRef = ref}
-        onContextMenu={this.onContextMenu}
-        onMouseDown={this.onBackgroundMouseDown}
-        onKeyPress={console.log}
-      >
-        {cards.map( ( card ) => (
-          <PlayingCard
-            key={card.id}
-            x={card.x * this.state.width}
-            y={card.y * this.state.height}
-            width={this.state.cardWidth}
-            height={this.state.cardHeight}
-            card={card}
-            selected={this.props.selectedCardIds.has( card.id )}
-            showContextMenu={this.props.selectedCardIds.size === 0}
-            onContextMenu={( pageX, pageY ) => this.onCardContextMenu( card, pageX, pageY )}
-            onDoubleClick={() => this.onFlipCard( card )}
-            onTouch={() => this.onCardTouch( card )}
-            onMove={( x, y ) => this.onCardMove( card, x, y )}
+        <div
+          className="w-100 h-100 position-relative"
+          ref={( ref ) => this.parentRef = ref}
+          onContextMenu={this.onContextMenu}
+          onMouseDown={this.onBackgroundMouseDown}
+          onKeyPress={console.log}
+        >
+          {cards.map( ( card ) => (
+            <PlayingCard
+              key={card.id}
+              x={card.x * this.state.width}
+              y={card.y * this.state.height}
+              width={this.state.cardWidth}
+              height={this.state.cardHeight}
+              card={card}
+              index={indeces.indexOf( card.index )}
+              selected={this.props.selectedCardIds.has( card.id )}
+              showContextMenu={this.props.selectedCardIds.size === 0}
+              onContextMenu={( pageX, pageY ) => this.onCardContextMenu( card, pageX, pageY )}
+              onDoubleClick={() => this.onFlipCard( card )}
+              onTouch={() => this.onCardTouch( card )}
+              onMove={( x, y ) => this.onCardMove( card, x, y )}
+            />
+          ) )}
+          <Selection
+            x={this.state.selectionX}
+            y={this.state.selectionY}
+            width={this.state.selectionWidth}
+            height={this.state.selectionHeight}
+            visible={this.state.selectionVisible}
           />
-        ) )}
-        <Selection
-          x={this.state.selectionX}
-          y={this.state.selectionY}
-          width={this.state.selectionWidth}
-          height={this.state.selectionHeight}
-          visible={this.state.selectionVisible}
+        </div>
+
+        <ContextMenu
+          x={this.state.contextMenuX}
+          y={this.state.contextMenuY}
+          open={this.state.contextMenuOpen}
+          onClose={() => this.setState( { contextMenuOpen: false } )}
+          actions={[
+            { label: 'Flip Cards Face Up', onClick: () => this.onFlipCards( false ) },
+            { label: 'Flip Cards Face Down', onClick: () => this.onFlipCards( true ) },
+            { label: 'Gather Cards Here', onClick: this.onGatherHereClick },
+            { label: 'Scatter Cards', onClick: this.onScatterCardsClick },
+            { label: 'Shuffle Cards', onClick: this.onShuffleCardsClick },
+            { label: 'Flip Deck', onClick: this.onFlipDeck }
+          ]}
         />
-      </div>
 
-      <ContextMenu
-        x={this.state.contextMenuX}
-        y={this.state.contextMenuY}
-        open={this.state.contextMenuOpen}
-        onClose={() => this.setState( { contextMenuOpen: false } )}
-        actions={[
-          { label: 'Flip Cards Face Up', onClick: () => this.onFlipCards( false ) },
-          { label: 'Flip Cards Face Down', onClick: () => this.onFlipCards( true ) },
-          { label: 'Gather Cards Here', onClick: this.onGatherHereClick },
-          { label: 'Scatter Cards', onClick: this.onScatterCardsClick },
-          { label: 'Shuffle Cards', onClick: this.onShuffleCardsClick },
-          { label: 'Flip Deck', onClick: this.onFlipDeck }
-        ]}
-      />
-
-      <ContextMenu
-        x={this.state.cardContextMenuX}
-        y={this.state.cardContextMenuY}
-        open={this.state.cardContextMenuOpen}
-        onClose={() => this.setState( { cardContextMenuOpen: false } )}
-        actions={[
-          { label: 'Flip Card', onClick: () => this.onFlipCard( this.contextCard! ) }
-        ]}
-      />
+        <ContextMenu
+          x={this.state.cardContextMenuX}
+          y={this.state.cardContextMenuY}
+          open={this.state.cardContextMenuOpen}
+          onClose={() => this.setState( { cardContextMenuOpen: false } )}
+          actions={[
+            { label: 'Flip Card', onClick: () => this.onFlipCard( this.contextCard! ) }
+          ]}
+        />
       </>
     );
   }

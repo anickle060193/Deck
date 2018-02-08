@@ -16,7 +16,8 @@ import
   FlipDeckAction,
 } from 'store/actions/cards';
 import * as db from 'utils/db';
-import { Card, toCardMap, CardMap, toCardArray, cardSorter, shuffle } from 'utils/card';
+import { Card, toCardMap, CardMap, toCardArray, cardSorter } from 'utils/card';
+import { shuffle } from 'utils/utils';
 
 function* retrieveCards( action: RetrieveCardsAction )
 {
