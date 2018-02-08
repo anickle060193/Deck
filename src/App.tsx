@@ -3,9 +3,7 @@ import { Provider } from 'react-redux';
 
 import AppBar from 'components/AppBar';
 import MainContent from 'components/MainContent';
-import { configureStore } from 'store';
-
-const store = configureStore();
+import store from 'store';
 
 export default class App extends React.Component
 {
