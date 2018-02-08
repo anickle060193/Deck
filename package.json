@@ -2,7 +2,7 @@
   "name": "deck",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://anickle060193.github.io/deck",
+  "homepage": "https://carddeck.io",
   "scripts": {
     "start": "react-scripts-ts start",
     "build": "react-scripts-ts build",
