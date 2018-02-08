@@ -36,7 +36,8 @@ export default class ContextMenu extends React.Component<Props>
         style={{
           left: this.props.x,
           top: this.props.y,
-          display: this.props.open ? '' : 'none'
+          display: this.props.open ? '' : 'none',
+          zIndex: 1100
         }}
         ref={( ref ) => this.contextMenuRef = ref}
       >

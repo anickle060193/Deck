@@ -17,7 +17,8 @@ const Selection: React.SFC<{
           top: height < 0 ? y + height : y,
           width: Math.abs( width ),
           height: Math.abs( height ),
-          display: visible ? '' : 'none'
+          display: visible ? '' : 'none',
+          zIndex: 1000
         }}
       />
     );
