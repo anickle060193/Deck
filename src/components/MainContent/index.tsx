@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import * as qs from 'qs';
 
 import CardField from 'components/CardField';
-import { loadLastGame } from 'store/actions/games';
+import { loadLastGame, loadGame } from 'store/actions/games';
 import { Game } from 'utils/game';
 
 interface PropsFromState
@@ -12,6 +13,7 @@ interface PropsFromState
 
 interface PropsFromDispatch
 {
+  loadGame: typeof loadGame;
   loadLastGame: typeof loadLastGame;
 }
 
@@ -21,7 +23,16 @@ class MainContent extends React.Component<Props>
 {
   componentDidMount()
   {
-    this.props.loadLastGame();
+    let query = qs.parse( window.location.search, { ignoreQueryPrefix: true } );
+    if( 'game' in query )
+    {
+      let gameId = query.game as string;
+      this.props.loadGame( gameId );
+    }
+    else
+    {
+      this.props.loadLastGame();
+    }
   }
 
   render()
@@ -37,6 +48,7 @@ export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
     game: state.games.game
   } ),
   {
+    loadGame,
     loadLastGame
   }
 )( MainContent );
