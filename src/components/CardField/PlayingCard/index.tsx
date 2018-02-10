@@ -161,177 +161,64 @@ interface Props
   index: number;
   card: Card;
   selected: boolean;
-  showContextMenu: boolean;
-  onContextMenu: ( pageX: number, pageY: number ) => void;
-  onDoubleClick: () => void;
-  onTouch: () => void;
-  onMove: ( x: number, y: number ) => void;
+  dragging: boolean;
+
+  onMouseDown: React.EventHandler<React.MouseEvent<{}>>;
+  onClick: React.EventHandler<React.MouseEvent<{}>>;
+  onDoubleClick: React.EventHandler<React.MouseEvent<{}>>;
+  onContextMenu: React.EventHandler<React.MouseEvent<{}>>;
 }
 
-interface State
+export default class PlayingCard extends React.Component<Props, {}>
 {
-  mouseDown: boolean;
-  x: number;
-  y: number;
-}
-
-export default class PlayingCard extends React.Component<Props, State>
-{
-  lastX: number;
-  lastY: number;
-
-  constructor( props: Props )
-  {
-    super( props );
-
-    this.state = {
-      mouseDown: false,
-      x: this.props.x,
-      y: this.props.y
-    };
-
-    this.lastX = 0;
-    this.lastY = 0;
-  }
-
-  componentWillReceiveProps( newProps: Props )
-  {
-    if( newProps.x !== this.props.x || newProps.y !== this.props.y )
-    {
-      if( !this.state.mouseDown )
-      {
-        this.setState( {
-          x: newProps.x,
-          y: newProps.y
-        } );
-      }
-    }
-  }
-
-  componentDidMount()
-  {
-    document.addEventListener( 'mousemove', this.onMouseMove );
-    document.addEventListener( 'mouseup', this.onMouseUp );
-  }
-
-  componentWillUnmount()
-  {
-    document.removeEventListener( 'mousemove', this.onMouseMove );
-    document.removeEventListener( 'mouseup', this.onMouseUp );
-  }
-
   render()
   {
-    let { width, height, card: { suit, rank, faceDown }, index, selected } = this.props;
-    let { x, y, mouseDown } = this.state;
-
     return (
       <div
         className={[
           'playing-card',
-          selected ? 'selected' : '',
-          faceDown ? 'face-down' : 'face-up',
-          mouseDown ? 'dragging' : ''
+          this.props.selected ? 'selected' : '',
+          this.props.card.faceDown ? 'face-down' : 'face-up',
+          this.props.dragging ? 'dragging' : ''
         ].join( ' ' )}
         style={{
-          left: x,
-          top: y,
-          width: width,
-          height: height,
-          zIndex: index
+          left: this.props.x,
+          top: this.props.y,
+          width: this.props.width,
+          height: this.props.height,
+          zIndex: this.props.index
         }}
-        onContextMenu={this.onContextMenu}
-        onMouseDown={this.onMouseDown}
-        onDoubleClick={this.onDoubleClick}
+        onMouseDown={this.props.onMouseDown}
+        onClick={this.props.onClick}
+        onDoubleClick={this.props.onDoubleClick}
+        onContextMenu={this.props.onContextMenu}
       >
-        {!faceDown &&
+        {!this.props.card.faceDown &&
           <>
             <SuitPips
-              suit={suit}
-              rank={rank}
-              cardWidth={width}
-              cardHeight={height}
+              suit={this.props.card.suit}
+              rank={this.props.card.rank}
+              cardWidth={this.props.width}
+              cardHeight={this.props.height}
             />
             <span
               className="rank-text"
               style={{
-                color: suitToColor( suit )
+                color: suitToColor( this.props.card.suit )
               }}
             >
-              {rankToText( rank )}
+              {rankToText( this.props.card.rank )}
             </span>
             <span
               className="rank-text-inverse"
               style={{
-                color: suitToColor( suit )
+                color: suitToColor( this.props.card.suit )
               }}
             >
-              {rankToText( rank )}
+              {rankToText( this.props.card.rank )}
             </span>
           </>}
       </div>
     );
-  }
-
-  private onContextMenu = ( e: React.MouseEvent<{}> ) =>
-  {
-    if( this.props.showContextMenu )
-    {
-      e.preventDefault();
-      e.stopPropagation();
-
-      this.props.onContextMenu( e.pageX, e.pageY );
-    }
-  }
-
-  private onDoubleClick = ( e: React.MouseEvent<{}> ) =>
-  {
-    e.preventDefault();
-    e.stopPropagation();
-
-    this.props.onDoubleClick();
-  }
-
-  private onMouseDown = ( e: React.MouseEvent<HTMLDivElement> ) =>
-  {
-    if( e.button === 0 )
-    {
-      this.setState( { mouseDown: true } );
-      this.lastX = e.screenX;
-      this.lastY = e.screenY;
-
-      e.stopPropagation();
-
-      this.props.onTouch();
-    }
-  }
-
-  private onMouseMove = ( e: MouseEvent ) =>
-  {
-    if( this.state.mouseDown )
-    {
-      let xDiff = e.screenX - this.lastX;
-      let yDiff = e.screenY - this.lastY;
-
-      this.setState( ( { x, y } ) => ( { x: x + xDiff, y: y + yDiff } ) );
-
-      e.stopPropagation();
-
-      this.lastX = e.screenX;
-      this.lastY = e.screenY;
-    }
-  }
-
-  private onMouseUp = ( e: MouseEvent ) =>
-  {
-    if( this.state.mouseDown )
-    {
-      this.setState( { mouseDown: false } );
-
-      e.stopPropagation();
-      e.cancelBubble = true;
-
-      this.props.onMove( this.state.x, this.state.y );
-    }
   }
 }

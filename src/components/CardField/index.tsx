@@ -58,6 +58,10 @@ interface State
   selectionHeight: number;
   selectionVisible: boolean;
 
+  draggingCardId: string | null;
+  draggingOffsetX: number;
+  draggingOffsetY: number;
+
   contextMenuX: number;
   contextMenuY: number;
   contextMenuOpen: boolean;
@@ -88,6 +92,10 @@ class CardField extends React.Component<Props, State>
       selectionWidth: 0,
       selectionHeight: 0,
       selectionVisible: false,
+
+      draggingCardId: null,
+      draggingOffsetX: 0,
+      draggingOffsetY: 0,
 
       contextMenuX: -1,
       contextMenuY: -1,
@@ -137,25 +145,36 @@ class CardField extends React.Component<Props, State>
           ref={( ref ) => this.parentRef = ref}
           onContextMenu={this.onContextMenu}
           onMouseDown={this.onBackgroundMouseDown}
-          onKeyPress={console.log}
         >
-          {cards.map( ( card ) => (
-            <PlayingCard
-              key={card.id}
-              x={card.x * this.state.width}
-              y={card.y * this.state.height}
-              width={this.state.cardWidth}
-              height={this.state.cardHeight}
-              card={card}
-              index={indeces.indexOf( card.index )}
-              selected={this.props.selectedCardIds.has( card.id )}
-              showContextMenu={this.props.selectedCardIds.size === 0}
-              onContextMenu={( pageX, pageY ) => this.onCardContextMenu( card, pageX, pageY )}
-              onDoubleClick={() => this.onFlipCard( card )}
-              onTouch={() => this.onCardTouch( card )}
-              onMove={( x, y ) => this.onCardMove( card, x, y )}
-            />
-          ) )}
+          {cards.map( ( card ) =>
+          {
+            let x = card.x;
+            let y = card.y;
+            let dragging = card.id === this.state.draggingCardId;
+            if( dragging )
+            {
+              x += this.state.draggingOffsetX;
+              y += this.state.draggingOffsetY;
+            }
+
+            return (
+              <PlayingCard
+                key={card.id}
+                x={x * this.state.width}
+                y={y * this.state.height}
+                width={this.state.cardWidth}
+                height={this.state.cardHeight}
+                card={card}
+                index={indeces.indexOf( card.index )}
+                selected={this.props.selectedCardIds.has( card.id )}
+                dragging={dragging}
+                onMouseDown={( e ) => this.onCardMouseDown( card, e )}
+                onClick={( e ) => this.onCardClick( card, e )}
+                onDoubleClick={( e ) => this.onCardDoubleClick( card, e )}
+                onContextMenu={( e ) => this.onCardContextMenu( card, e )}
+              />
+            );
+          } )}
           <Selection
             x={this.state.selectionX}
             y={this.state.selectionY}
@@ -171,12 +190,12 @@ class CardField extends React.Component<Props, State>
           open={this.state.contextMenuOpen}
           onClose={() => this.setState( { contextMenuOpen: false } )}
           actions={[
-            { label: 'Flip Cards Face Up', onClick: () => this.onFlipCards( false ) },
-            { label: 'Flip Cards Face Down', onClick: () => this.onFlipCards( true ) },
+            { label: 'Flip Cards Face Up', onClick: () => this.onFlipCardsClick( false ) },
+            { label: 'Flip Cards Face Down', onClick: () => this.onFlipCardsClick( true ) },
             { label: 'Gather Cards Here', onClick: this.onGatherHereClick },
             { label: 'Scatter Cards', onClick: this.onScatterCardsClick },
             { label: 'Shuffle Cards', onClick: this.onShuffleCardsClick },
-            { label: 'Flip Deck', onClick: this.onFlipDeck }
+            { label: 'Flip Deck', onClick: this.onFlipDeckClick }
           ]}
         />
 
@@ -238,16 +257,6 @@ class CardField extends React.Component<Props, State>
     }
   }
 
-  private onCardContextMenu = ( card: Card, pageX: number, pageY: number ) =>
-  {
-    this.contextCard = card;
-    this.setState( {
-      cardContextMenuOpen: true,
-      cardContextMenuX: pageX,
-      cardContextMenuY: pageY
-    } );
-  }
-
   private onBackgroundMouseDown = ( e: React.MouseEvent<{}> ) =>
   {
     if( e.button === 0 )
@@ -266,17 +275,30 @@ class CardField extends React.Component<Props, State>
 
   private onMouseMove = ( e: MouseEvent ) =>
   {
-    if( e.button === 0 && this.mouseDown )
+    if( e.button === 0 )
     {
       if( this.parentRef )
       {
-        let x = e.clientX - this.parentRef.offsetLeft;
-        let y = e.clientY - this.parentRef.offsetTop;
-        this.setState( {
-          selectionWidth: x - this.state.selectionX,
-          selectionHeight: y - this.state.selectionY,
-          selectionVisible: true
-        } );
+        if( this.state.draggingCardId )
+        {
+          let xDiff = e.movementX / this.parentRef.clientWidth;
+          let yDiff = e.movementY / this.parentRef.clientHeight;
+          this.setState( ( { draggingOffsetX, draggingOffsetY } ) =>
+            ( {
+              draggingOffsetX: draggingOffsetX + xDiff,
+              draggingOffsetY: draggingOffsetY + yDiff
+            } ) );
+        }
+        else if( this.mouseDown )
+        {
+          let x = e.clientX - this.parentRef.offsetLeft;
+          let y = e.clientY - this.parentRef.offsetTop;
+          this.setState( {
+            selectionWidth: x - this.state.selectionX,
+            selectionHeight: y - this.state.selectionY,
+            selectionVisible: true
+          } );
+        }
       }
     }
   }
@@ -285,19 +307,36 @@ class CardField extends React.Component<Props, State>
   {
     if( e.button === 0 )
     {
-      if( this.mouseDown )
+      if( this.state.draggingCardId )
+      {
+        let draggingCard = this.props.cards[ this.state.draggingCardId ];
+        let x = draggingCard.x + this.state.draggingOffsetX;
+        let y = draggingCard.y + this.state.draggingOffsetY;
+
+        if( x !== draggingCard.x || y !== draggingCard.y )
+        {
+          this.props.moveCard( this.props.game.id, draggingCard.id, x, y );
+        }
+
+        this.setState( {
+          draggingCardId: null,
+          draggingOffsetX: 0,
+          draggingOffsetY: 0
+        } );
+      }
+      else if( this.mouseDown )
       {
         this.onSelection();
-      }
 
-      this.mouseDown = false;
-      this.setState( {
-        selectionVisible: false,
-        selectionX: -1,
-        selectionY: -1,
-        selectionWidth: 0,
-        selectionHeight: 0
-      } );
+        this.mouseDown = false;
+        this.setState( {
+          selectionVisible: false,
+          selectionX: -1,
+          selectionY: -1,
+          selectionWidth: 0,
+          selectionHeight: 0
+        } );
+      }
     }
   }
 
@@ -350,28 +389,57 @@ class CardField extends React.Component<Props, State>
     this.props.selectCards( selectedCardIds );
   }
 
-  private onCardTouch = ( card: Card ) =>
+  private onCardMouseDown = ( card: Card, e: React.MouseEvent<{}> ) =>
   {
-    this.props.deselectCards();
-    this.props.touchCard( this.props.game.id, card.id );
-  }
-
-  private onCardMove = ( card: Card, x: number, y: number ) =>
-  {
-    let xRatio = x / this.state.width;
-    let yRatio = y / this.state.height;
-    if( xRatio !== card.x || yRatio !== card.y )
+    if( e.button === 0 )
     {
-      this.props.moveCard( this.props.game.id, card.id, xRatio, yRatio );
+      e.preventDefault();
+      e.stopPropagation();
+
+      this.setState( {
+        draggingCardId: card.id,
+        draggingOffsetX: 0,
+        draggingOffsetY: 0
+      } );
+
+      this.props.deselectCards();
+      this.props.touchCard( this.props.game.id, card.id );
     }
   }
 
-  private onFlipCard = ( card: Card ) =>
+  private onCardClick = ( card: Card, e: React.MouseEvent<{}> ) =>
   {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  private onCardDoubleClick = ( card: Card, e: React.MouseEvent<{}> ) =>
+  {
+    e.preventDefault();
+    e.stopPropagation();
+
     this.props.flipCards( this.props.game.id, [ card.id ], !card.faceDown );
   }
 
-  private onFlipCards = ( faceDown: boolean ) =>
+  private onCardContextMenu = ( card: Card, e: React.MouseEvent<{}> ) =>
+  {
+    if( this.props.selectedCardIds.size > 0 )
+    {
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    this.contextCard = card;
+    this.setState( {
+      cardContextMenuOpen: true,
+      cardContextMenuX: e.pageX,
+      cardContextMenuY: e.pageY
+    } );
+  }
+
+  private onFlipCardsClick = ( faceDown: boolean ) =>
   {
     this.props.flipCards( this.props.game.id, this.getSelectedOrAllCardIds(), faceDown );
   }
@@ -397,9 +465,14 @@ class CardField extends React.Component<Props, State>
     this.props.shuffleCards( this.props.game.id, this.getSelectedOrAllCardIds() );
   }
 
-  private onFlipDeck = () =>
+  private onFlipDeckClick = () =>
   {
     this.props.flipDeck( this.props.game.id, this.getSelectedOrAllCardIds() );
+  }
+
+  private onFlipCard = ( card: Card ) =>
+  {
+    this.props.flipCards( this.props.game.id, [ card.id ], !card.faceDown );
   }
 }
 
