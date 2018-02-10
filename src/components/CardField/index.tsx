@@ -10,7 +10,7 @@ import { Game } from 'utils/game';
 import { compareByKey, compareTo } from 'utils/utils';
 import
 {
-  moveCard,
+  moveCards,
   touchCard,
   gatherCards,
   scatterCards,
@@ -32,7 +32,7 @@ interface PropsFromState
 
 interface PropsFromDispatch
 {
-  moveCard: typeof moveCard;
+  moveCards: typeof moveCards;
   touchCard: typeof touchCard;
   gatherCards: typeof gatherCards;
   scatterCards: typeof scatterCards;
@@ -58,7 +58,7 @@ interface State
   selectionHeight: number;
   selectionVisible: boolean;
 
-  draggingCardId: string | null;
+  draggingCardIds: Set<string>;
   draggingOffsetX: number;
   draggingOffsetY: number;
 
@@ -93,7 +93,7 @@ class CardField extends React.Component<Props, State>
       selectionHeight: 0,
       selectionVisible: false,
 
-      draggingCardId: null,
+      draggingCardIds: new Set(),
       draggingOffsetX: 0,
       draggingOffsetY: 0,
 
@@ -150,7 +150,7 @@ class CardField extends React.Component<Props, State>
           {
             let x = card.x;
             let y = card.y;
-            let dragging = card.id === this.state.draggingCardId;
+            let dragging = this.state.draggingCardIds.has( card.id );
             if( dragging )
             {
               x += this.state.draggingOffsetX;
@@ -279,7 +279,7 @@ class CardField extends React.Component<Props, State>
     {
       if( this.parentRef )
       {
-        if( this.state.draggingCardId )
+        if( this.state.draggingCardIds.size > 0 )
         {
           let xDiff = e.movementX / this.parentRef.clientWidth;
           let yDiff = e.movementY / this.parentRef.clientHeight;
@@ -307,19 +307,20 @@ class CardField extends React.Component<Props, State>
   {
     if( e.button === 0 )
     {
-      if( this.state.draggingCardId )
+      if( this.state.draggingCardIds.size > 0 )
       {
-        let draggingCard = this.props.cards[ this.state.draggingCardId ];
-        let x = draggingCard.x + this.state.draggingOffsetX;
-        let y = draggingCard.y + this.state.draggingOffsetY;
-
-        if( x !== draggingCard.x || y !== draggingCard.y )
+        if( this.state.draggingOffsetX !== 0 || this.state.draggingOffsetY !== 0 )
         {
-          this.props.moveCard( this.props.game.id, draggingCard.id, x, y );
+          this.props.moveCards(
+            this.props.game.id,
+            Array.from( this.state.draggingCardIds ),
+            this.state.draggingOffsetX,
+            this.state.draggingOffsetY
+          );
         }
 
         this.setState( {
-          draggingCardId: null,
+          draggingCardIds: new Set(),
           draggingOffsetX: 0,
           draggingOffsetY: 0
         } );
@@ -396,14 +397,24 @@ class CardField extends React.Component<Props, State>
       e.preventDefault();
       e.stopPropagation();
 
-      this.setState( {
-        draggingCardId: card.id,
-        draggingOffsetX: 0,
-        draggingOffsetY: 0
-      } );
+      if( this.props.selectedCardIds.size > 0 )
+      {
+        this.setState( {
+          draggingCardIds: this.props.selectedCardIds,
+          draggingOffsetX: 0,
+          draggingOffsetY: 0
+        } );
+      }
+      else
+      {
+        this.setState( {
+          draggingCardIds: new Set( [ card.id ] ),
+          draggingOffsetX: 0,
+          draggingOffsetY: 0
+        } );
 
-      this.props.deselectCards();
-      this.props.touchCard( this.props.game.id, card.id );
+        this.props.touchCard( this.props.game.id, card.id );
+      }
     }
   }
 
@@ -483,7 +494,7 @@ export default connect<PropsFromState, PropsFromDispatch, {}, RootState>(
     selectedCardIds: state.cards.selectedCardIds
   } ),
   {
-    moveCard,
+    moveCards,
     touchCard,
     gatherCards,
     scatterCards,

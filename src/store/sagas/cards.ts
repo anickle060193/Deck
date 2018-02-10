@@ -5,7 +5,7 @@ import
 {
   RetrieveCardsAction,
   CardActions,
-  MoveCardAction,
+  MoveCardsAction,
   setCards,
   CardAction,
   GatherCardsAction,
@@ -18,6 +18,14 @@ import
 import * as db from 'utils/db';
 import { Card, toCardMap, CardMap, toCardArray, cardSorter } from 'utils/card';
 import { shuffle } from 'utils/utils';
+
+function* getCards( cardIds: string[] )
+{
+  let cardIdSet = new Set( cardIds );
+  let cardMap: CardMap = yield select<RootState>( ( state ) => state.cards.cards );
+  return toCardArray( cardMap )
+    .filter( ( { id } ) => cardIdSet.has( id ) );
+}
 
 function* retrieveCards( action: RetrieveCardsAction )
 {
@@ -42,16 +50,15 @@ function* retrieveCards( action: RetrieveCardsAction )
   yield put( selectCards( [] ) );
 }
 
-function* moveCard( action: MoveCardAction )
+function* moveCards( action: MoveCardsAction )
 {
-  yield call( db.moveCard, action.gameId, action.cardId, action.x, action.y );
+  let cards: Card[] = yield getCards( action.cardIds );
+  yield call( db.saveCards, action.gameId, cards );
 }
 
 function* gatherCards( action: GatherCardsAction )
 {
-  let cardMap: CardMap = yield select<RootState>( ( state ) => state.cards.cards );
-  let cards = toCardArray( cardMap )
-    .filter( ( { id } ) => action.cardIds.indexOf( id ) !== -1 )
+  let cards: Card[] = ( yield getCards( action.cardIds ) )
     .sort( cardSorter );
 
   cards.forEach( ( card, i ) =>
@@ -83,9 +90,7 @@ function* flipCards( action: FlipCardsAction )
 
 function* shuffleCards( action: ShuffleCardsAction )
 {
-  let cardMap: CardMap = yield select<RootState>( ( state ) => state.cards.cards );
-  let cards = toCardArray( cardMap )
-    .filter( ( { id } ) => action.cardIds.indexOf( id ) !== -1 );
+  let cards: Card[] = yield getCards( action.cardIds );
 
   shuffle( cards ).forEach( ( card, i ) =>
   {
@@ -96,9 +101,7 @@ function* shuffleCards( action: ShuffleCardsAction )
 
 function* flipDeck( action: FlipDeckAction )
 {
-  let cardMap: CardMap = yield select<RootState>( ( state ) => state.cards.cards );
-  let cards = toCardArray( cardMap )
-    .filter( ( { id } ) => action.cardIds.indexOf( id ) !== -1 )
+  let cards: Card[] = ( yield getCards( action.cardIds ) )
     .sort( cardSorter );
 
   for( let i = 0; i < cards.length / 2; i++ )
@@ -116,7 +119,7 @@ function* flipDeck( action: FlipDeckAction )
 export default function* ()
 {
   yield takeEvery( CardActions.RetrieveCards, retrieveCards );
-  yield takeEvery( CardActions.MoveCard, moveCard );
+  yield takeEvery( CardActions.MoveCards, moveCards );
   yield takeEvery( CardActions.GatherCards, gatherCards );
   yield takeEvery( CardActions.ScatterCards, scatterCards );
   yield takeEvery( CardActions.FlipCards, flipCards );

@@ -87,16 +87,6 @@ export async function touchCard( gameId: string, cardId: string )
     .update( { index: firebase.firestore.FieldValue.serverTimestamp() } );
 }
 
-export async function moveCard( gameId: string, cardId: string, x: number, y: number )
-{
-  let cardDoc = db.collection( 'games' ).doc( gameId ).collection( 'cards' ).doc( cardId );
-  await cardDoc.update( {
-    x,
-    y,
-    index: firebase.firestore.FieldValue.serverTimestamp()
-  } );
-}
-
 export async function flipCards( gameId: string, cardIds: string[], faceDown: boolean )
 {
   let cards = cardIds.map( ( id ) => ( {

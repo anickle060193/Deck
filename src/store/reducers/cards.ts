@@ -1,7 +1,7 @@
 import { Reducer } from 'redux';
 
 import { CardAction, CardActions } from 'store/actions/cards';
-import { CardMap } from 'utils/card';
+import { CardMap, toCardMap } from 'utils/card';
 
 export interface State
 {
@@ -51,17 +51,20 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
         }
       };
 
-    case CardActions.MoveCard:
+    case CardActions.MoveCards:
       return {
         ...state,
         cards: {
           ...state.cards,
-          [ action.cardId ]: {
-            ...state.cards[ action.cardId ],
-            x: action.x,
-            y: action.y,
-            index: new Date()
-          }
+          ...toCardMap( action.cardIds.map( ( cardId ) =>
+          {
+            let card = state.cards[ cardId ];
+            return {
+              ...card,
+              x: card.x + action.xOffset,
+              y: card.y + action.yOffset
+            };
+          } ) )
         }
       };
 
