@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
 import App from './App';
-import registerServiceWorker from './registerServiceWorker';
+import { unregister } from './registerServiceWorker';
 
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
@@ -14,4 +14,4 @@ ReactDOM.render(
   document.getElementById( 'root' ) as HTMLElement
 );
 
-registerServiceWorker();
+unregister();
