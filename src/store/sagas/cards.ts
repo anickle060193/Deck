@@ -52,8 +52,7 @@ function* retrieveCards( action: RetrieveCardsAction )
 
 function* moveCards( action: MoveCardsAction )
 {
-  let cards: Card[] = yield getCards( action.cardIds );
-  yield call( db.saveCards, action.gameId, cards );
+  yield call( db.moveCards, action.gameId, action.cardIds, action.xOffset, action.yOffset );
 }
 
 function* gatherCards( action: GatherCardsAction )
@@ -76,7 +75,7 @@ function* scatterCards( action: ScatterCardsAction )
   shuffle( cards );
   cards.forEach( ( card, i ) =>
   {
-    card.index = new Date( i );
+    card.index = i;
     card.x = Math.random() * 0.8;
     card.y = Math.random() * 0.8;
   } );
@@ -94,7 +93,7 @@ function* shuffleCards( action: ShuffleCardsAction )
 
   shuffle( cards ).forEach( ( card, i ) =>
   {
-    card.index = new Date( i );
+    card.index = i;
   } );
   yield call( db.saveCards, action.gameId, cards );
 }

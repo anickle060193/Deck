@@ -132,11 +132,9 @@ class CardField extends React.Component<Props, State>
   render()
   {
     let cards = toCardArray( this.props.cards ).sort( compareByKey<Card>( 'id' ) );
-    let indeces = cards
+    let indices = cards
       .map( ( card ) => card.index )
-      .filter( ( index ) => index !== null )
       .sort( compareTo );
-    indeces.push( null );
 
     return (
       <>
@@ -148,6 +146,8 @@ class CardField extends React.Component<Props, State>
         >
           {cards.map( ( card ) =>
           {
+            let index = indices.indexOf( card.index );
+
             let x = card.x;
             let y = card.y;
             let dragging = this.state.draggingCardIds.has( card.id );
@@ -155,6 +155,7 @@ class CardField extends React.Component<Props, State>
             {
               x += this.state.draggingOffsetX;
               y += this.state.draggingOffsetY;
+              index += cards.length;
             }
 
             return (
@@ -165,7 +166,7 @@ class CardField extends React.Component<Props, State>
                 width={this.state.cardWidth}
                 height={this.state.cardHeight}
                 card={card}
-                index={indeces.indexOf( card.index )}
+                index={index}
                 selected={this.props.selectedCardIds.has( card.id )}
                 dragging={dragging}
                 onMouseDown={( e ) => this.onCardMouseDown( card, e )}
@@ -309,15 +310,12 @@ class CardField extends React.Component<Props, State>
     {
       if( this.state.draggingCardIds.size > 0 )
       {
-        if( this.state.draggingOffsetX !== 0 || this.state.draggingOffsetY !== 0 )
-        {
-          this.props.moveCards(
-            this.props.game.id,
-            Array.from( this.state.draggingCardIds ),
-            this.state.draggingOffsetX,
-            this.state.draggingOffsetY
-          );
-        }
+        this.props.moveCards(
+          this.props.game.id,
+          Array.from( this.state.draggingCardIds ),
+          this.state.draggingOffsetX,
+          this.state.draggingOffsetY
+        );
 
         this.setState( {
           draggingCardIds: new Set(),

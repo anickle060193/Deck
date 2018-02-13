@@ -1,6 +1,3 @@
-type Diff<T extends string, U extends string> = ( {[ P in T ]: P } & {[ P in U ]: never } & { [ x: string ]: never } )[ T ];
-type Omit<T, K extends keyof T> = Pick<T, Diff<keyof T, K>>;
-
 export const enum Suit
 {
   Spades = 'Spades',
@@ -49,13 +46,11 @@ export const RANKS = [
   Rank.King
 ];
 
-type CardIndex = Date | null | number;
-
 export interface CardBase
 {
   suit: Suit;
   rank: Rank;
-  index: CardIndex;
+  index: number;
   x: number;
   y: number;
   faceDown: boolean;
@@ -66,17 +61,16 @@ export interface Card extends CardBase
   id: string;
 }
 
-export interface CardUpdate extends Partial<Omit<CardBase, 'index'>>
+export interface CardUpdate extends Partial<CardBase>
 {
   id: string;
-  index?: CardIndex | firebase.firestore.FieldValue;
 }
 
 export type CardMap = { [ id: string ]: Card };
 
 export function cardSorter( cardA: Card, cardB: Card )
 {
-  return ( +( cardB.index || new Date() ) ) - ( +( cardA.index || new Date() ) );
+  return cardB.index - cardA.index;
 }
 
 export function toCardMap( cards: Card[] )

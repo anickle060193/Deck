@@ -1,7 +1,7 @@
 import { Reducer } from 'redux';
 
 import { CardAction, CardActions } from 'store/actions/cards';
-import { CardMap, toCardMap } from 'utils/card';
+import { CardMap, toCardMap, toCardArray, cardSorter } from 'utils/card';
 
 export interface State
 {
@@ -40,33 +40,43 @@ export const reducer: Reducer<State> = ( state = initialState, action: CardActio
       };
 
     case CardActions.TouchCard:
-      return {
-        ...state,
-        cards: {
-          ...state.cards,
-          [ action.cardId ]: {
-            ...state.cards[ action.cardId ],
-            index: new Date()
+      {
+        let nextCardIndex = Math.max( ...toCardArray( state.cards ).map( ( card ) => card.index ) ) + 1;
+        return {
+          ...state,
+          cards: {
+            ...state.cards,
+            [ action.cardId ]: {
+              ...state.cards[ action.cardId ],
+              index: nextCardIndex
+            }
           }
-        }
-      };
+        };
+      }
 
     case CardActions.MoveCards:
-      return {
-        ...state,
-        cards: {
-          ...state.cards,
-          ...toCardMap( action.cardIds.map( ( cardId ) =>
-          {
-            let card = state.cards[ cardId ];
-            return {
-              ...card,
-              x: card.x + action.xOffset,
-              y: card.y + action.yOffset
-            };
-          } ) )
-        }
-      };
+      {
+        let nextCardIndex = Math.max( ...toCardArray( state.cards ).map( ( card ) => card.index ) ) + 1;
+        let cards = action.cardIds
+          .map( ( cardId ) => state.cards[ cardId ] )
+          .sort( cardSorter )
+          .reverse();
+        return {
+          ...state,
+          cards: {
+            ...state.cards,
+            ...toCardMap( cards.map( ( card ) =>
+            {
+              return {
+                ...card,
+                index: nextCardIndex++,
+                x: card.x + action.xOffset,
+                y: card.y + action.yOffset
+              };
+            } ) )
+          }
+        };
+      }
 
     case CardActions.GatherCards:
       return state;

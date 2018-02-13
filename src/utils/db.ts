@@ -1,8 +1,8 @@
 import * as firebase from 'firebase';
 import 'firebase/firestore';
 
-import { Card, CardBase, CardUpdate } from 'utils/card';
-import { Game } from 'utils/game';
+import { Card, CardBase, CardUpdate, cardSorter } from 'utils/card';
+import { Game, GameUpdate } from 'utils/game';
 
 firebase.initializeApp( {
   apiKey: 'AIzaSyCHBeQAOAPQsykJArFxIcp1z_Lt0bKwlWk',
@@ -25,6 +25,9 @@ function snapshotToDataCreator<T>()
   };
 }
 
+const snapshotToCard = snapshotToDataCreator<Card>();
+const snapshotToGame = snapshotToDataCreator<Game>();
+
 export async function getGame( gameId: string )
 {
   let gameRef = await db.collection( 'games' ).doc( gameId ).get();
@@ -37,7 +40,12 @@ export async function createGame( cards: CardBase[] )
 
   let gameDoc = db.collection( 'games' ).doc();
 
-  batch.set( gameDoc, { id: gameDoc.id } );
+  let game: Game = {
+    id: gameDoc.id,
+    nextCardIndex: Math.max( ...cards.map( ( card ) => card.index ) ) + 1
+  };
+
+  batch.set( gameDoc, game );
 
   let cardsRef = gameDoc.collection( 'cards' );
 
@@ -49,12 +57,6 @@ export async function createGame( cards: CardBase[] )
 
   let gameSnapshot = await gameDoc.get();
   return gameSnapshot.data() as Game;
-}
-
-export async function getCards( gameId: string )
-{
-  let cards = await db.collection( 'games' ).doc( gameId ).collection( 'cards' ).get();
-  return cards.docs.map( snapshotToDataCreator<Game>() );
 }
 
 export async function saveCards( gameId: string, cards: CardUpdate[] )
@@ -75,16 +77,26 @@ export function listenForCards( gameId: string, listener: ( card: Card[] ) => vo
   let cardsCollection = db.collection( 'games' ).doc( gameId ).collection( 'cards' );
   return cardsCollection.onSnapshot( ( cardsSnapshot ) =>
   {
-    let cards = cardsSnapshot.docs.map( snapshotToDataCreator<Card>() );
+    let cards = cardsSnapshot.docs.map( snapshotToCard );
     listener( cards );
   } );
 }
 
 export async function touchCard( gameId: string, cardId: string )
 {
-  await db.collection( 'games' ).doc( gameId )
-    .collection( 'cards' ).doc( cardId )
-    .update( { index: firebase.firestore.FieldValue.serverTimestamp() } );
+  await db.runTransaction( async ( transaction ) =>
+  {
+    let gameDoc = db.collection( 'games' ).doc( gameId );
+    let gameSnapshot = await transaction.get( gameDoc );
+    let game = snapshotToGame( gameSnapshot );
+
+    let cardDoc = gameDoc.collection( 'cards' ).doc( cardId );
+    let cardUpdate: Omit<CardUpdate, 'id'> = { index: game.nextCardIndex };
+    transaction.update( cardDoc, cardUpdate );
+
+    let gameUpdate: Omit<GameUpdate, 'id'> = { nextCardIndex: game.nextCardIndex + 1 };
+    transaction.update( gameDoc, gameUpdate );
+  } );
 }
 
 export async function flipCards( gameId: string, cardIds: string[], faceDown: boolean )
@@ -94,4 +106,35 @@ export async function flipCards( gameId: string, cardIds: string[], faceDown: bo
     faceDown
   } ) );
   await saveCards( gameId, cards );
+}
+
+export async function moveCards( gameId: string, cardIds: string[], xOffset: number, yOffset: number )
+{
+  await db.runTransaction( async ( transaction ) =>
+  {
+    let gameDoc = db.collection( 'games' ).doc( gameId );
+    let gameSnapshot = await transaction.get( gameDoc );
+    let game = snapshotToGame( gameSnapshot );
+
+    let cardsCollection = gameDoc.collection( 'cards' );
+    let cardDocs = cardIds.map( ( id ) => cardsCollection.doc( id ) );
+    let cardSnapshots = await Promise.all( cardDocs.map( ( cardDoc ) => cardDoc.get() ) );
+    let cards = cardSnapshots.map( snapshotToCard ).sort( cardSorter ).reverse();
+
+    let nextCardIndex = game.nextCardIndex;
+    for( let card of cards )
+    {
+      let cardUpdate: Omit<CardUpdate, 'id'> = {
+        index: nextCardIndex++,
+        x: card.x + xOffset,
+        y: card.y + yOffset
+      };
+      transaction.update( cardsCollection.doc( card.id ), cardUpdate );
+    }
+
+    let gameUpdate: Omit<GameUpdate, 'id'> = {
+      nextCardIndex: nextCardIndex
+    };
+    transaction.update( gameDoc, gameUpdate );
+  } );
 }
