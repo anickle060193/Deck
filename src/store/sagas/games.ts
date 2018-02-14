@@ -47,6 +47,7 @@ function* loadGameFromDb( action: LoadGameAction )
   }
   catch( e )
   {
+    console.error( 'Failed to load game:', e );
     yield put( loadGameError( e ) );
   }
 }
@@ -85,6 +86,7 @@ function* createGame( action: CreateGameAction )
   }
   catch( e )
   {
+    console.error( 'Failed to create game:', e );
     yield put( loadGameError( e ) );
   }
 }

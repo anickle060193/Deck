@@ -148,6 +148,11 @@ class CardField extends React.Component<Props, State>
           {
             let index = indices.indexOf( card.index );
 
+            if( index < 0 )
+            {
+              index = 0;
+            }
+
             let x = card.x;
             let y = card.y;
             let dragging = this.state.draggingCardIds.has( card.id );

@@ -30,8 +30,8 @@ const snapshotToGame = snapshotToDataCreator<Game>();
 
 export async function getGame( gameId: string )
 {
-  let gameRef = await db.collection( 'games' ).doc( gameId ).get();
-  return gameRef.data() as Game | null;
+  let gameSnapshot = await db.collection( 'games' ).doc( gameId ).get();
+  return snapshotToGame( gameSnapshot );
 }
 
 export async function createGame( cards: CardBase[] )
@@ -40,8 +40,7 @@ export async function createGame( cards: CardBase[] )
 
   let gameDoc = db.collection( 'games' ).doc();
 
-  let game: Game = {
-    id: gameDoc.id,
+  let game: Omit<Game, 'id'> = {
     nextCardIndex: Math.max( ...cards.map( ( card ) => card.index ) ) + 1
   };
 
@@ -56,7 +55,7 @@ export async function createGame( cards: CardBase[] )
   await batch.commit();
 
   let gameSnapshot = await gameDoc.get();
-  return gameSnapshot.data() as Game;
+  return snapshotToGame( gameSnapshot );
 }
 
 export async function saveCards( gameId: string, cards: CardUpdate[] )
