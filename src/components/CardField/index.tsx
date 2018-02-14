@@ -462,8 +462,8 @@ class CardField extends React.Component<Props, State>
   {
     if( this.parentRef )
     {
-      let x = ( this.state.contextMenuX - this.parentRef.offsetLeft - this.state.cardWidth / 2 ) / this.state.width;
-      let y = ( this.state.contextMenuY - this.parentRef.offsetTop - this.state.cardHeight / 2 ) / this.state.height;
+      let x = ( this.state.contextMenuX - this.parentRef.offsetLeft ) / this.state.width;
+      let y = ( this.state.contextMenuY - this.parentRef.offsetTop ) / this.state.height;
 
       this.props.gatherCards( this.props.game.id, this.getSelectedOrAllCardIds(), x, y );
     }
